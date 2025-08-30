@@ -8,3 +8,6 @@
 
 ## [0.1.0] - 2025-08-30
 - Primera publicación: clasificación binaria, regresión, CLI y reportes Markdown.
+
+## [0.2.1] - 2025-08-30
+- Release de prueba del flujo CI/CD (publicación por tag).
