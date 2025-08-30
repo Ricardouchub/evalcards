@@ -1,0 +1,11 @@
+```gitignore
+.venv/
+__pycache__/
+*.pyc
+evalcards_reports/
+informes_eval/
+dist/
+*.egg-info/
+Pypi-Recovery.txt
+TestPypi-Recovery.txt
+```
