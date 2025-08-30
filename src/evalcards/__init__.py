@@ -1,8 +1,8 @@
 from .report import make_report
 
-# versión tomada del metadata instalado (sin duplicar con pyproject.toml)
+# Exponer versión desde el metadata instalado 
 try:
-    from importlib.metadata import version, PackageNotFoundError  # Python 3.8+
+    from importlib.metadata import version
     __version__ = version("evalcards")
 except Exception:
     __version__ = "0.0.0"
