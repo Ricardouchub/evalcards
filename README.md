@@ -41,7 +41,7 @@ path = make_report(
 print(path)  # ruta del reporte generado
 ```
 
-## Qué puedes evaluar
+## Qué evalúa
 ------------------
 - **Clasificación (binaria/multiclase)**  
   Métricas: `accuracy`, `precision/recall/F1` (macro/weighted),  
