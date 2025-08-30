@@ -1,11 +1,24 @@
 evalcards
 ================
-
+[![PyPI version](https://img.shields.io/pypi/v/evalcards?logo=pypi&label=PyPI)](https://pypi.org/project/evalcards/)
+[![Python versions](https://img.shields.io/pypi/pyversions/evalcards?logo=python&label=Python)](https://pypi.org/project/evalcards/)
+[![Wheel](https://img.shields.io/pypi/wheel/evalcards?label=wheel)](https://pypi.org/project/evalcards/#files)
+[![License](https://img.shields.io/pypi/l/evalcards?label=License)](https://pypi.org/project/evalcards/)
+[![CI](https://github.com/Ricardouchub/evalcards/actions/workflows/ci.yml/badge.svg)](https://github.com/Ricardouchub/evalcards/actions/workflows/ci.yml)
+[![Publish](https://github.com/Ricardouchub/evalcards/actions/workflows/release.yml/badge.svg)](https://github.com/Ricardouchub/evalcards/actions/workflows/release.yml)
 
 `evalcards` genera reportes de evaluación para **modelos supervisados** en **Markdown**, con **métricas** y **gráficos** listos para pegar en informes. Soporta:
 - **Clasificación**: binaria y **multiclase (OvR)** con curvas **ROC/PR** por clase.
 - **Regresión**.
 - **Forecasting** (series de tiempo): **sMAPE (%)** y **MASE**.
+
+Documentación
+-----------
+
+- 📚 **Guía completa**: [docs/index.md](docs/index.md)
+- 🔧 **Referencia de API**: [docs/api.md](docs/api.md)
+- 📝 **Changelog**: [CHANGELOG.md](CHANGELOG.md)
+- 🐞 **Incidencias / ideas**: [Issues](https://github.com/Ricardouchub/evalcards/issues)
 
 Instalación
 -----------
