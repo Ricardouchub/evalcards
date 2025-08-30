@@ -155,7 +155,7 @@ Soporte actual
 
 Licencia
 --------
-MIT (puedes cambiarla si lo prefieres).
+MIT
 
 Autor
 -----
