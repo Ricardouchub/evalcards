@@ -8,4 +8,5 @@ dist/
 *.egg-info/
 Pypi-Recovery.txt
 TestPypi-Recovery.txt
+*.docx
 ```
