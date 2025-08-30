@@ -184,7 +184,7 @@ Funciona con **cualquier modelo** que produzca `predict` (y opcionalmente `predi
 
 ---
 
-### Backlog (ideas)
+### Ideas
 - [ ] Soporte **multi-label**
 - [ ] Métricas de ranking (MAP/NDCG)
 - [ ] Curvas de calibración por bins configurables
