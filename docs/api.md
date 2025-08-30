@@ -4,7 +4,7 @@ Actualmente, el punto de entrada público es **`make_report`**.
 
 ---
 
-## `make_report(...)`
+### `make_report(...)`
 
 **Módulo**: `evalcards.report`  
 **Devuelve**: `str` con la **ruta** del Markdown generado.
