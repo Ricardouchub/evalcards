@@ -162,4 +162,7 @@ MIT
 
 Autor
 -----
-Ricardo Urdaneta (Ricardouchub)
+**Ricardo Urdaneta**
+
+**[Linkedin](https://www.linkedin.com/in/ricardourdanetacastro)**
+
