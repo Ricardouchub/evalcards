@@ -2,96 +2,156 @@ evalcards
 ================
 
 Descripción
-----------
-evalcards genera reportes de evaluación para **modelos supervisados** (clasificación y regresión) en formato Markdown, incluyendo gráficos listos (matriz de confusión, ROC/PR, ajuste y residuales). Pensado para usarse tanto desde Python como desde la línea de comandos (CLI).
+-----------
+`evalcards` genera reportes de evaluación para **modelos supervisados** en **Markdown**, con gráficos listos. Soporta:
+- Clasificación (binaria y multiclase OvR)
+- Regresión
+- Forecasting (sMAPE/MASE)
+
+Características
+---------------
+- Tabla de métricas por tarea.
+- Gráficos: matriz de confusión, ROC/PR (binaria y multiclase OvR), ajuste y residuales.
+- CLI y API Python.
+- Carpeta de salida por defecto: `./evalcards_reports` (personalizable con `--outdir`).
 
 Requisitos
 ----------
 - Python 3.9+
-- Las dependencias se instalan automáticamente al instalar el paquete (numpy, pandas, scikit-learn, matplotlib, jinja2).
+- Dependencias se instalan automáticamente (numpy, pandas, scikit-learn, matplotlib, jinja2).
 
-Instalación (local / desarrollo)
---------------------------------
-1) Crear y activar un entorno virtual (opcional pero recomendado)
-   - Windows (PowerShell):
-       python -m venv .venv
-       . .\.venv\Scripts\Activate.ps1
-   - macOS / Linux:
-       python3 -m venv .venv
-       source .venv/bin/activate
-
+Instalación (dev/local)
+-----------------------
+1) Crear y activar entorno virtual (opcional):
+   - **Windows (PowerShell):**
+     ```powershell
+     python -m venv .venv
+     . .\.venv\Scripts\Activate.ps1
+     ```
+   - **macOS / Linux:**
+     ```bash
+     python3 -m venv .venv
+     source .venv/bin/activate
+     ```
 2) Instalar en modo editable desde la carpeta del proyecto:
-       pip install -e .
+   ```bash
+   pip install -e .
+   ```
 
-Uso desde Python
+Uso rápido (API Python)
+----------------------
+**Clasificación binaria (con probabilidades opcionales):**
+```python
+from evalcards import make_report
+
+path = make_report(
+    y_true, y_pred, y_proba=proba,         # y_proba: vector 1D (prob. clase positiva)
+    path="reporte.md", title="Mi modelo"
+)
+print(path)
+```
+
+**Regresión:**
+```python
+make_report(y_true, y_pred, path="rep_reg.md", title="Regresión")
+```
+
+Uso rápido (CLI)
 ----------------
-Ejemplo (clasificación binaria con probabilidades opcionales):
+1) Prepara CSVs con una sola columna o con nombres estándar (`y_true`, `y_pred`, `y_proba`).
+2) Ejecuta (por defecto guarda en `./evalcards_reports`):
+   ```bash
+   evalcards --y_true y_true.csv --y_pred y_pred.csv --proba y_proba.csv --out rep.md --title "Mi modelo"
+   ```
+3) Carpeta personalizada:
+   ```bash
+   evalcards --y_true y_true.csv --y_pred y_pred.csv --out rep.md --outdir informes_eval
+   ```
 
-    from evalcards import make_report
+Clasificación multiclase (OvR)
+------------------------------
+### API (Python)
+```python
+# y_proba: matriz (n_samples, n_classes) con probabilidades
+out = make_report(
+    y_true, y_pred, y_proba=proba,
+    labels=["Clase_A","Clase_B","Clase_C"],  # opcional
+    path="rep_multi.md", title="Multiclase OvR"
+)
+```
 
-    # y_true: etiquetas reales (array-like)
-    # y_pred: etiquetas predichas (array-like)
-    # y_proba: probabilidad de la clase positiva (shape (n_samples,)), opcional
-    path = make_report(
-        y_true, y_pred, y_proba=proba,
-        path="reporte.md",
-        title="Mi modelo"
-    )
-    print(path)  # ruta al reporte Markdown
+### CLI
+```bash
+# y_proba.csv con N columnas (una por clase)
+evalcards --y_true y_true.csv --y_pred y_pred.csv --proba y_proba.csv --class-names "Clase_A,Clase_B,Clase_C" --out rep_cli_multiclase.md
+```
+**Salidas:** `confusion.png` + `roc_class_<clase>.png` y `pr_class_<clase>.png` por clase.  
+**Métrica:** `roc_auc_ovr_macro`.
 
-Para regresión, simplemente no pases y_proba y utiliza tus vectores reales y predichos (y_true, y_pred).
+Forecasting (sMAPE/MASE)
+------------------------
+### API (Python)
+```python
+out = make_report(
+    y_true_test, y_pred_test,
+    task="forecast", season=12, insample=y_true_train,
+    path="rep_forecast.md", title="Forecast"
+)
+```
 
-Uso desde la CLI
-----------------
-1) Prepara CSVs con una sola columna o con nombres estándar (y_true, y_pred, y_proba).
-2) Ejecuta:
-
-    # Por defecto guarda todo en ./evalcards_reports
-    evalcards --y_true y_true.csv --y_pred y_pred.csv --proba y_proba.csv --out rep.md --title "Mi modelo"
-
-    # Carpeta de salida personalizada
-    evalcards --y_true y_true.csv --y_pred y_pred.csv --out rep.md --outdir informes_eval
+### CLI
+```bash
+evalcards --y_true y_true_test.csv --y_pred y_pred_test.csv --forecast --season 12 --insample y_insample.csv --out rep_forecast_cli.md
+```
+**Métricas:** `MAE`, `MSE`, `RMSE`, `sMAPE (%)`, `MASE`.  
+**Gráficos:** `fit.png` y `resid.png`.
 
 Entradas esperadas
 ------------------
-- Clasificación:
-  - y_true: etiquetas reales (0/1 o multicategoría).
-  - y_pred: etiquetas predichas.
-  - y_proba (opcional, binaria): prob. de la clase positiva, vector 1D de longitud n_samples.
-
-- Regresión:
-  - y_true: valores reales (float).
-  - y_pred: valores predichos (float).
+- **Clasificación:**
+  - `y_true`: etiquetas reales (0..K-1 o nombres).
+  - `y_pred`: etiquetas predichas.
+  - `y_proba`:
+    - **Binaria:** vector 1D (prob. clase positiva).
+    - **Multiclase:** matriz (N columnas, una por clase).
+- **Regresión/Forecast:**
+  - `y_true`: valores reales.
+  - `y_pred`: valores predichos.
+  - `insample` (opcional para MASE): serie de entrenamiento; usar `--season` (ej. 12).
 
 Salidas
 -------
-- Un archivo Markdown (por ejemplo, rep.md) con las métricas y referencias a imágenes.
-- Imágenes PNG guardadas en la carpeta destino (por defecto: ./evalcards_reports):
-  - Clasificación: confusion.png; si pasas y_proba (binaria): roc.png y pr.png.
-  - Regresión: fit.png (ajuste y vs ŷ) y resid.png (residuales).
+- Archivo Markdown con métricas y referencias a imágenes.
+- Imágenes PNG en la carpeta destino (por defecto: `./evalcards_reports`):
+  - **Clasificación:** `confusion.png`; si hay probabilidades binaria: `roc.png`, `pr.png`; en multiclase: `roc_class_<clase>.png` y `pr_class_<clase>.png` por clase.
+  - **Regresión/Forecast:** `fit.png` (ajuste y vs ŷ) y `resid.png` (residuales).
 
 Métricas incluidas
 ------------------
-- Clasificación: accuracy, precision/recall/F1 (macro y weighted). Si hay y_proba (binaria): AUC (ROC).
-- Regresión: MAE, MSE, RMSE, R².
-
-Soporte actual
---------------
-- Detección automática de tarea (classification vs regression).
-- Clasificación: binaria y multiclase (métricas + matriz de confusión). Curvas ROC/PR: por ahora solo binaria.
-- Regresión: métricas básicas y dos gráficos (ajuste y residuales).
+- **Clasificación:** `accuracy`, `precision`/`recall`/`F1` (macro y weighted).  
+  - Binaria: `roc_auc`.  
+  - Multiclase OvR: `roc_auc_ovr_macro`.
+- **Regresión:** `MAE`, `MSE`, `RMSE`, `R²`.
+- **Forecast:** `MAE`, `MSE`, `RMSE`, `sMAPE (%)`, `MASE`.
 
 Notas técnicas
 --------------
-- Cuando solo pasas un nombre de archivo en --out o path (por ejemplo, "rep.md"), evalcards crea por defecto la carpeta ./evalcards_reports y guarda allí el reporte y las imágenes.
+- Si solo pasas un nombre de archivo en `--out`/`path` (p. ej. `rep.md`), se usará `./evalcards_reports` automáticamente.
 - Si especificas una ruta con carpeta, se respeta esa ruta.
-- Con --outdir puedes fijar explícitamente la carpeta de salida.
+- `--outdir` fija explícitamente la carpeta de salida.
+- El paquete fuerza backend **Agg** de Matplotlib para generar PNGs en entornos sin GUI.
 
 Solución de problemas (rápida)
 ------------------------------
-- "No module named evalcards": asegúrate de correr 'pip install -e .' en la carpeta del proyecto y que tu entorno virtual esté activo.
-- Problemas con matplotlib en servidores sin GUI: evalcards usa guardado a PNG y no requiere backend interactivo.
-- CSVs: si tu archivo tiene varias columnas, incluye una llamada y_true/y_pred/y_proba o deja una sola columna.
+- “No module named evalcards”: instala con `pip install -e .` desde la carpeta del proyecto y activa tu venv.
+- Matplotlib/Tk en servidores: no se necesita GUI; se guardan PNGs con backend `Agg`.
+- CSVs: si el archivo tiene varias columnas, usa nombres `y_true`/`y_pred`/`y_proba` o deja una sola columna.
+
+Soporte actual
+--------------
+- Detección automática de tarea (`auto`): clasificación vs regresión.  
+- **Multiclase:** curvas ROC/PR **OvR** y `roc_auc_ovr_macro`.  
+- **Forecasting:** sMAPE/MASE con `--season` e `--insample`.
 
 Licencia
 --------
