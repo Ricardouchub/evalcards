@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "evalcards"
-version = "0.2.5"
+version = "0.2.6"
 description = "Reportes de evaluación (clasificación/regresión) a Markdown con gráficos"
 readme = "README.md"
 requires-python = ">=3.9"
