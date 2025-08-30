@@ -161,26 +161,26 @@ Funciona con **cualquier modelo** que produzca `predict` (y opcionalmente `predi
 *Sujeto a cambios* 
 
 ### v0.3 — Salida y métricas clave
-- [ ] **Reporte HTML autocontenido** (`format="md|html"`)
-- [ ] **Export JSON** de métricas/paths (`--export-json`)
-- [ ] **Métricas nuevas (clasificación)**: AUPRC, Balanced Accuracy, MCC, Log Loss
-- [ ] **Métricas nuevas (regresión)**: MAPE, MedAE, RMSLE
+- [ ] Reporte HTML autocontenido (`format="md|html"`)
+- [ ] Export JSON** de métricas/paths (`--export-json`)
+- [ ] Métricas nuevas (clasificación): AUPRC, Balanced Accuracy, MCC, Log Loss
+- [ ] Métricas nuevas (regresión): MAPE, MedAE, RMSLE
 
 ### v0.4 — Multiclase y umbrales
-- [ ] **ROC/PR micro & macro (multiclase)** + `roc_auc_macro`, `average_precision_macro`
-- [ ] **Análisis de umbral** (curvas precisión–recobrado–F1 vs umbral + mejor umbral por métrica)
-- [ ] **Matriz de confusión normalizada** (global y por clase)
+- [ ] ROC/PR micro & macro (multiclase) + `roc_auc_macro`, `average_precision_macro`
+- [ ] Análisis de umbral (curvas precisión–recobrado–F1 vs umbral + mejor umbral por métrica)
+- [ ] Matriz de confusión normalizada (global y por clase)
 
 ### v0.5 — Probabilidades y comparación
-- [ ] **Calibración**: Brier score + curva de confiabilidad
-- [ ] **Comparación multi-modelo** en un único reporte (tabla “mejor por métrica”)
-- [ ] **Curvas gain/lift** (opcional)
+- [ ] Calibración: Brier score + curva de confiabilidad
+- [ ] Comparación multi-modelo en un único reporte (tabla “mejor por métrica”)
+- [ ] Curvas gain/lift (opcional)
 
 ### v0.6 — DX, formatos y docs
-- [ ] **Nuevos formatos de entrada**: Parquet/Feather/NPZ
-- [ ] **Config de proyecto** (`.evalcards.toml`) para defaults (outdir, títulos, idioma)
-- [ ] **Docs con MkDocs + GitHub Pages** (guía, API, ejemplos ejecutables)
-- [ ] **Plantillas/temas Jinja2** (branding)
+- [ ] Nuevos formatos de entrada: Parquet/Feather/NPZ
+- [ ] Config de proyecto (`.evalcards.toml`) para defaults (outdir, títulos, idioma)
+- [ ] Docs con MkDocs + GitHub Pages (guía, API, ejemplos ejecutables)
+- [ ] Plantillas/temas Jinja2 (branding)
 
 ---
 
