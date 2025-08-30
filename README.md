@@ -2,8 +2,6 @@ evalcards
 ================
 
 
-Descripción
------------
 `evalcards` genera reportes de evaluación para **modelos supervisados** en **Markdown**, con **métricas** y **gráficos** listos para pegar en informes. Soporta:
 - **Clasificación**: binaria y **multiclase (OvR)** con curvas **ROC/PR** por clase.
 - **Regresión**.
