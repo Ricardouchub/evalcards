@@ -1,166 +1,160 @@
 evalcards
 ================
 
-[![PyPI version](https://img.shields.io/pypi/v/evalcards?logo=pypi&label=PyPI)](https://pypi.org/project/evalcards/)
-[![Python versions](https://img.shields.io/pypi/pyversions/evalcards?logo=python&label=Python)](https://pypi.org/project/evalcards/)
-[![Wheel](https://img.shields.io/pypi/wheel/evalcards?label=wheel)](https://pypi.org/project/evalcards/#files)
-[![License](https://img.shields.io/pypi/l/evalcards?label=License)](https://pypi.org/project/evalcards/)
-[![CI](https://github.com/Ricardouchub/evalcards/actions/workflows/ci.yml/badge.svg)](https://github.com/Ricardouchub/evalcards/actions/workflows/ci.yml)
-[![Publish](https://github.com/Ricardouchub/evalcards/actions/workflows/release.yml/badge.svg)](https://github.com/Ricardouchub/evalcards/actions/workflows/release.yml)
-
-
 
 Descripción
 -----------
-`evalcards` genera reportes de evaluación para **modelos supervisados** en **Markdown**, con gráficos listos. Soporta:
-- Clasificación (binaria y multiclase OvR)
-- Regresión
-- Forecasting (sMAPE/MASE)
+`evalcards` genera reportes de evaluación para **modelos supervisados** en **Markdown**, con **métricas** y **gráficos** listos para pegar en informes. Soporta:
+- **Clasificación**: binaria y **multiclase (OvR)** con curvas **ROC/PR** por clase.
+- **Regresión**.
+- **Forecasting** (series de tiempo): **sMAPE (%)** y **MASE**.
 
-Características
----------------
-- Tabla de métricas por tarea.
-- Gráficos: matriz de confusión, ROC/PR (binaria y multiclase OvR), ajuste y residuales.
-- CLI y API Python.
-- Carpeta de salida por defecto: `./evalcards_reports` (personalizable con `--outdir`).
+Instalación
+-----------
+```bash
+pip install evalcards
+```
 
-Requisitos
-----------
-- Python 3.9+
-- Dependencias se instalan automáticamente (numpy, pandas, scikit-learn, matplotlib, jinja2).
-
-Instalación (dev/local)
------------------------
-1) Crear y activar entorno virtual (opcional):
-   - **Windows (PowerShell):**
-     ```powershell
-     python -m venv .venv
-     . .\.venv\Scripts\Activate.ps1
-     ```
-   - **macOS / Linux:**
-     ```bash
-     python3 -m venv .venv
-     source .venv/bin/activate
-     ```
-2) Instalar en modo editable desde la carpeta del proyecto:
-   ```bash
-   pip install -e .
-   ```
-
-Uso rápido (API Python)
-----------------------
-**Clasificación binaria (con probabilidades opcionales):**
+Uso rápido (Python)
+-------------------
 ```python
 from evalcards import make_report
 
+# y_true: etiquetas/valores reales
+# y_pred: etiquetas/valores predichos
+# y_proba (opcional):
+#   - binaria: vector 1D con prob. de la clase positiva
+#   - multiclase: matriz (n_samples, n_classes) con prob. por clase
+
 path = make_report(
-    y_true, y_pred, y_proba=proba,         # y_proba: vector 1D (prob. clase positiva)
-    path="reporte.md", title="Mi modelo"
+    y_true, y_pred,
+    y_proba=proba,                 # opcional
+    path="reporte.md",             # nombre del archivo Markdown
+    title="Mi modelo"              # título del reporte
 )
-print(path)
+print(path)  # ruta del reporte generado
 ```
 
-**Regresión:**
+Qué puedes evaluar
+------------------
+- **Clasificación (binaria/multiclase)**  
+  Métricas: `accuracy`, `precision/recall/F1` (macro/weighted),  
+  AUC: `roc_auc` (binaria) y `roc_auc_ovr_macro` (multiclase).  
+  Gráficos: **matriz de confusión**, **ROC** y **PR** (por clase en multiclase).
+
+- **Regresión**  
+  Métricas: `MAE`, `MSE`, `RMSE`, `R²`.  
+  Gráficos: **Ajuste (y vs ŷ)** y **Residuales**.
+
+- **Forecasting**  
+  Métricas: `MAE`, `MSE`, `RMSE`, **sMAPE (%)**, **MASE**.  
+  Parámetros extra: `season` (p.ej. 12) e `insample` (serie de entrenamiento para MASE).  
+  Gráficos: **Ajuste** y **Residuales**.
+
+Ejemplos breves
+---------------
+**1) Clasificación binaria (scikit-learn)**
 ```python
-make_report(y_true, y_pred, path="rep_reg.md", title="Regresión")
+from sklearn.datasets import make_classification
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from evalcards import make_report
+
+X, y = make_classification(n_samples=600, n_features=10, random_state=0)
+X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.3, random_state=0)
+
+clf = LogisticRegression(max_iter=1000).fit(X_tr, y_tr)
+y_pred = clf.predict(X_te)
+proba = clf.predict_proba(X_te)[:, 1]
+
+make_report(y_te, y_pred, y_proba=proba, path="rep_bin.md", title="Clasificación binaria")
 ```
 
-Uso rápido (CLI)
-----------------
-1) Prepara CSVs con una sola columna o con nombres estándar (`y_true`, `y_pred`, `y_proba`).
-2) Ejecuta (por defecto guarda en `./evalcards_reports`):
-   ```bash
-   evalcards --y_true y_true.csv --y_pred y_pred.csv --proba y_proba.csv --out rep.md --title "Mi modelo"
-   ```
-3) Carpeta personalizada:
-   ```bash
-   evalcards --y_true y_true.csv --y_pred y_pred.csv --out rep.md --outdir informes_eval
-   ```
-
-Clasificación multiclase (OvR)
-------------------------------
-### API (Python)
+**2) Multiclase (OvR)**
 ```python
-# y_proba: matriz (n_samples, n_classes) con probabilidades
-out = make_report(
-    y_true, y_pred, y_proba=proba,
-    labels=["Clase_A","Clase_B","Clase_C"],  # opcional
+from sklearn.datasets import load_iris
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from evalcards import make_report
+
+X, y = load_iris(return_X_y=True)
+X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.3, random_state=0)
+
+clf = RandomForestClassifier(random_state=0).fit(X_tr, y_tr)
+y_pred = clf.predict(X_te)
+proba = clf.predict_proba(X_te)  # (n_samples, n_classes)
+
+make_report(
+    y_te, y_pred, y_proba=proba,
+    labels=[f"Clase_{c}" for c in clf.classes_],   # opcional (nombres por clase)
     path="rep_multi.md", title="Multiclase OvR"
 )
 ```
 
-### CLI
-```bash
-# y_proba.csv con N columnas (una por clase)
-evalcards --y_true y_true.csv --y_pred y_pred.csv --proba y_proba.csv --class-names "Clase_A,Clase_B,Clase_C" --out rep_cli_multiclase.md
-```
-**Salidas:** `confusion.png` + `roc_class_<clase>.png` y `pr_class_<clase>.png` por clase.  
-**Métrica:** `roc_auc_ovr_macro`.
-
-Forecasting (sMAPE/MASE)
-------------------------
-### API (Python)
+**3) Regresión**
 ```python
-out = make_report(
-    y_true_test, y_pred_test,
-    task="forecast", season=12, insample=y_true_train,
+from sklearn.datasets import make_regression
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import train_test_split
+from evalcards import make_report
+
+X, y = make_regression(n_samples=600, n_features=8, noise=10, random_state=0)
+X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.3, random_state=0)
+
+reg = RandomForestRegressor(random_state=0).fit(X_tr, y_tr)
+y_pred = reg.predict(X_te)
+
+make_report(y_te, y_pred, path="rep_reg.md", title="Regresión")
+```
+
+**4) Forecasting (sMAPE/MASE)**
+```python
+import numpy as np
+from evalcards import make_report
+
+rng = np.random.default_rng(0)
+t = np.arange(360)
+y = 10 + 0.05*t + 5*np.sin(2*np.pi*t/12) + rng.normal(0,1,360)
+
+y_train, y_test = y[:300], y[300:]
+y_hat = y_test + rng.normal(0, 1.2, y_test.size)  # predicción de ejemplo
+
+make_report(
+    y_test, y_hat,
+    task="forecast", season=12, insample=y_train,
     path="rep_forecast.md", title="Forecast"
 )
 ```
 
-### CLI
-```bash
-evalcards --y_true y_true_test.csv --y_pred y_pred_test.csv --forecast --season 12 --insample y_insample.csv --out rep_forecast_cli.md
-```
-**Métricas:** `MAE`, `MSE`, `RMSE`, `sMAPE (%)`, `MASE`.  
-**Gráficos:** `fit.png` y `resid.png`.
+Salidas y ubicación
+-------------------
+- Un archivo **Markdown** con las métricas y referencias a imágenes.
+- Imágenes **PNG** (confusión, ROC/PR, ajuste, residuales).
+- Por defecto, si `path` no incluye carpeta, todo se guarda en `./evalcards_reports/`.  
+  Puedes cambiar la carpeta con el argumento `out_dir` o usando una ruta en `path`.
 
-Entradas esperadas
-------------------
-- **Clasificación:**
-  - `y_true`: etiquetas reales (0..K-1 o nombres).
-  - `y_pred`: etiquetas predichas.
-  - `y_proba`:
-    - **Binaria:** vector 1D (prob. clase positiva).
-    - **Multiclase:** matriz (N columnas, una por clase).
-- **Regresión/Forecast:**
-  - `y_true`: valores reales.
-  - `y_pred`: valores predichos.
-  - `insample` (opcional para MASE): serie de entrenamiento; usar `--season` (ej. 12).
+Entradas esperadas (formas comunes)
+-----------------------------------
+- **Clasificación**
+  - `y_true`: enteros 0..K-1 (o etiquetas string).
+  - `y_pred`: del mismo tipo/espacio de clases que `y_true`.
+  - `y_proba` (opcional):
+    - **Binaria**: vector 1D con prob. de la clase positiva.
+    - **Multiclase**: matriz `(n_samples, n_classes)` con una columna por clase (mismo orden que tu modelo).
+- **Regresión / Forecast**
+  - `y_true`, `y_pred`: arrays 1D de floats.
+  - `insample` (forecast): serie de entrenamiento para MASE; `season` según la estacionalidad (ej. 12 mensual/anual).
 
-Salidas
--------
-- Archivo Markdown con métricas y referencias a imágenes.
-- Imágenes PNG en la carpeta destino (por defecto: `./evalcards_reports`):
-  - **Clasificación:** `confusion.png`; si hay probabilidades binaria: `roc.png`, `pr.png`; en multiclase: `roc_class_<clase>.png` y `pr_class_<clase>.png` por clase.
-  - **Regresión/Forecast:** `fit.png` (ajuste y vs ŷ) y `resid.png` (residuales).
-
-Métricas incluidas
-------------------
-- **Clasificación:** `accuracy`, `precision`/`recall`/`F1` (macro y weighted).  
-  - Binaria: `roc_auc`.  
-  - Multiclase OvR: `roc_auc_ovr_macro`.
-- **Regresión:** `MAE`, `MSE`, `RMSE`, `R²`.
-- **Forecast:** `MAE`, `MSE`, `RMSE`, `sMAPE (%)`, `MASE`.
+Compatibilidad (modelos)
+------------------------
+Funciona con **cualquier modelo** que produzca `predict` (y opcionalmente `predict_proba`):
+- scikit-learn, XGBoost/LightGBM/CatBoost, statsmodels, Prophet/NeuralProphet, Keras/PyTorch (si pasas tus arrays).
+- Multiclase: pasa `y_proba` como matriz (una columna por clase) y, si quieres, `labels` para nombres.
 
 Notas técnicas
 --------------
-- Si solo pasas un nombre de archivo en `--out`/`path` (p. ej. `rep.md`), se usará `./evalcards_reports` automáticamente.
-- Si especificas una ruta con carpeta, se respeta esa ruta.
-- `--outdir` fija explícitamente la carpeta de salida.
-- El paquete fuerza backend **Agg** de Matplotlib para generar PNGs en entornos sin GUI.
-
-Solución de problemas (rápida)
-------------------------------
-- “No module named evalcards”: instala con `pip install -e .` desde la carpeta del proyecto y activa tu venv.
-- Matplotlib/Tk en servidores: no se necesita GUI; se guardan PNGs con backend `Agg`.
-- CSVs: si el archivo tiene varias columnas, usa nombres `y_true`/`y_pred`/`y_proba` o deja una sola columna.
-
-Soporte actual
---------------
-- Detección automática de tarea (`auto`): clasificación vs regresión.  
-- **Multiclase:** curvas ROC/PR **OvR** y `roc_auc_ovr_macro`.  
-- **Forecasting:** sMAPE/MASE con `--season` e `--insample`.
+- El backend de Matplotlib se fuerza a **Agg** (no requiere GUI).
+- Reportes en **Markdown** para fácil copia/pegado en documentos.
 
 Licencia
 --------
