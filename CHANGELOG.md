@@ -2,7 +2,7 @@
 
 ## [0.2.0] - 2025-08-30
 - Multiclase OvR: curvas ROC/PR por clase y `roc_auc_ovr_macro`.
-- Forecasting: métricas sMAPE (%) y MASE + gráficos (fit, residuales).
+- Forecasting: sMAPE (%) y MASE + gráficos (fit, residuales).
 - Backend matplotlib forzado a Agg (tests/servidores sin GUI).
 - README reorganizado.
 
