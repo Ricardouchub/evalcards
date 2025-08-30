@@ -8,8 +8,6 @@ evalcards
 [![CI](https://github.com/Ricardouchub/evalcards/actions/workflows/ci.yml/badge.svg)](https://github.com/Ricardouchub/evalcards/actions/workflows/ci.yml)
 [![Publish](https://github.com/Ricardouchub/evalcards/actions/workflows/release.yml/badge.svg)](https://github.com/Ricardouchub/evalcards/actions/workflows/release.yml)
 
-[Guía](docs/index.md) | [Referencia de API](docs/api.md) | [Changelog](CHANGELOG.md)
-
 `evalcards` genera reportes de evaluación para **modelos supervisados** en **Markdown**, con **métricas** y **gráficos** listos para pegar en informes. Soporta:
 - **Clasificación**: binaria y **multiclase (OvR)** con curvas **ROC/PR** por clase.
 - **Regresión**.
@@ -154,7 +152,7 @@ Entradas esperadas (formas comunes)
   - `y_true`, `y_pred`: arrays 1D de floats.
   - `insample` (forecast): serie de entrenamiento para MASE; `season` según la estacionalidad (ej. 12 mensual/anual).
 
-Compatibilidad (modelos)
+Compatibilidad de modelos
 ------------------------
 Funciona con **cualquier modelo** que produzca `predict` (y opcionalmente `predict_proba`):
 - scikit-learn, XGBoost/LightGBM/CatBoost, statsmodels, Prophet/NeuralProphet, Keras/PyTorch (si pasas tus arrays).
