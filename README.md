@@ -157,9 +157,9 @@ Funciona con **cualquier modelo** que produzca `predict` (y opcionalmente `predi
 - scikit-learn, XGBoost/LightGBM/CatBoost, statsmodels, Prophet/NeuralProphet, Keras/PyTorch (si pasas tus arrays).
 - Multiclase: pasa `y_proba` como matriz (una columna por clase) y, si quieres, `labels` para nombres.
 
-## Roadmap
-*Sujeto a cambios* 
 
+## Roadmap
+------------------------
 ### v0.3 — Salida y métricas clave
 - [ ] Reporte HTML autocontenido (`format="md|html"`)
 - [ ] Export JSON** de métricas/paths (`--export-json`)
@@ -182,9 +182,9 @@ Funciona con **cualquier modelo** que produzca `predict` (y opcionalmente `predi
 - [ ] Docs con MkDocs + GitHub Pages (guía, API, ejemplos ejecutables)
 - [ ] Plantillas/temas Jinja2 (branding)
 
----
 
 ### Ideas
+------------------------
 - [ ] Soporte **multi-label**
 - [ ] Métricas de ranking (MAP/NDCG)
 - [ ] Curvas de calibración por bins configurables
@@ -193,16 +193,17 @@ Funciona con **cualquier modelo** que produzca `predict` (y opcionalmente `predi
 
 
 ## Documentación
------------
-
+------------------------
 **[Guía](docs/index.md)** | **[Referencia de API](docs/api.md)** | **[Changelog](CHANGELOG.md)**
 
-Licencia
---------
+
+## Licencia
+------------------------
 MIT
 
-Autor
------
+
+## Autor
+------------------------
 **Ricardo Urdaneta**
 
 **[Linkedin](https://www.linkedin.com/in/ricardourdanetacastro)**
