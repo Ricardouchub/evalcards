@@ -12,6 +12,14 @@ evalcards
 - **Regresión**.
 - **Forecasting** (series de tiempo): **sMAPE (%)** y **MASE**.
 
+Documentación
+-----------
+
+- 📚 **Guía completa**: [docs/index.md](docs/index.md)
+- 🔧 **Referencia de API**: [docs/api.md](docs/api.md)
+- 📝 **Changelog**: [CHANGELOG.md](CHANGELOG.md)
+- 🐞 **Incidencias / ideas**: [Issues](https://github.com/Ricardouchub/evalcards/issues)
+
 Instalación
 -----------
 ```bash
