@@ -7,7 +7,7 @@ evalcards
 [![License](https://img.shields.io/pypi/l/evalcards?label=License)](https://pypi.org/project/evalcards/)
 [![CI](https://github.com/Ricardouchub/evalcards/actions/workflows/ci.yml/badge.svg)](https://github.com/Ricardouchub/evalcards/actions/workflows/ci.yml)
 [![Publish](https://github.com/Ricardouchub/evalcards/actions/workflows/release.yml/badge.svg)](https://github.com/Ricardouchub/evalcards/actions/workflows/release.yml)
-[![Downloads](https://static.pepy.tech/badge/evalcards)](https://pepy.tech/project/evalcards)
+
 
 
 Descripción
