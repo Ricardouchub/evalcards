@@ -1,5 +1,5 @@
-evalcards
-================
+# evalcards
+
 [![PyPI version](https://img.shields.io/pypi/v/evalcards?logo=pypi&label=PyPI)](https://pypi.org/project/evalcards/)
 [![Python versions](https://img.shields.io/pypi/pyversions/evalcards?logo=python&label=Python)](https://pypi.org/project/evalcards/)
 [![Wheel](https://img.shields.io/pypi/wheel/evalcards?label=wheel)](https://pypi.org/project/evalcards/#files)
@@ -12,21 +12,16 @@ evalcards
 - **Regresión**.
 - **Forecasting** (series de tiempo): **sMAPE (%)** y **MASE**.
 
-Documentación
------------
 
-- 📚 **Guía completa**: [docs/index.md](docs/index.md)
-- 🔧 **Referencia de API**: [docs/api.md](docs/api.md)
-- 📝 **Changelog**: [CHANGELOG.md](CHANGELOG.md)
-- 🐞 **Incidencias / ideas**: [Issues](https://github.com/Ricardouchub/evalcards/issues)
 
-Instalación
+
+## Instalación
 -----------
 ```bash
 pip install evalcards
 ```
 
-Uso rápido (Python)
+## Uso rápido (Python)
 -------------------
 ```python
 from evalcards import make_report
@@ -46,7 +41,7 @@ path = make_report(
 print(path)  # ruta del reporte generado
 ```
 
-Qué puedes evaluar
+## Qué evalúa
 ------------------
 - **Clasificación (binaria/multiclase)**  
   Métricas: `accuracy`, `precision/recall/F1` (macro/weighted),  
@@ -62,7 +57,7 @@ Qué puedes evaluar
   Parámetros extra: `season` (p.ej. 12) e `insample` (serie de entrenamiento para MASE).  
   Gráficos: **Ajuste** y **Residuales**.
 
-Ejemplos breves
+## Ejemplos 
 ---------------
 **1) Clasificación binaria (scikit-learn)**
 ```python
@@ -137,14 +132,14 @@ make_report(
 )
 ```
 
-Salidas y ubicación
+## Outs y PATH
 -------------------
 - Un archivo **Markdown** con las métricas y referencias a imágenes.
 - Imágenes **PNG** (confusión, ROC/PR, ajuste, residuales).
 - Por defecto, si `path` no incluye carpeta, todo se guarda en `./evalcards_reports/`.  
   Puedes cambiar la carpeta con el argumento `out_dir` o usando una ruta en `path`.
 
-Entradas esperadas (formas comunes)
+## Entradas esperadas (formas comunes)
 -----------------------------------
 - **Clasificación**
   - `y_true`: enteros 0..K-1 (o etiquetas string).
@@ -156,23 +151,59 @@ Entradas esperadas (formas comunes)
   - `y_true`, `y_pred`: arrays 1D de floats.
   - `insample` (forecast): serie de entrenamiento para MASE; `season` según la estacionalidad (ej. 12 mensual/anual).
 
-Compatibilidad (modelos)
+## Compatibilidad de modelos
 ------------------------
 Funciona con **cualquier modelo** que produzca `predict` (y opcionalmente `predict_proba`):
 - scikit-learn, XGBoost/LightGBM/CatBoost, statsmodels, Prophet/NeuralProphet, Keras/PyTorch (si pasas tus arrays).
 - Multiclase: pasa `y_proba` como matriz (una columna por clase) y, si quieres, `labels` para nombres.
 
-Notas técnicas
---------------
-- El backend de Matplotlib se fuerza a **Agg** (no requiere GUI).
-- Reportes en **Markdown** para fácil copia/pegado en documentos.
 
-Licencia
---------
+## Roadmap
+------------------------
+### v0.3 — Salida y métricas clave
+- [ ] Reporte HTML autocontenido (`format="md|html"`)
+- [ ] Export JSON** de métricas/paths (`--export-json`)
+- [ ] Métricas nuevas (clasificación): AUPRC, Balanced Accuracy, MCC, Log Loss
+- [ ] Métricas nuevas (regresión): MAPE, MedAE, RMSLE
+
+### v0.4 — Multiclase y umbrales
+- [ ] ROC/PR micro & macro (multiclase) + `roc_auc_macro`, `average_precision_macro`
+- [ ] Análisis de umbral (curvas precisión–recobrado–F1 vs umbral + mejor umbral por métrica)
+- [ ] Matriz de confusión normalizada (global y por clase)
+
+### v0.5 — Probabilidades y comparación
+- [ ] Calibración: Brier score + curva de confiabilidad
+- [ ] Comparación multi-modelo en un único reporte (tabla “mejor por métrica”)
+- [ ] Curvas gain/lift (opcional)
+
+### v0.6 — DX, formatos y docs
+- [ ] Nuevos formatos de entrada: Parquet/Feather/NPZ
+- [ ] Config de proyecto (`.evalcards.toml`) para defaults (outdir, títulos, idioma)
+- [ ] Docs con MkDocs + GitHub Pages (guía, API, ejemplos ejecutables)
+- [ ] Plantillas/temas Jinja2 (branding)
+
+
+### Ideas
+------------------------
+- [ ] Soporte **multi-label**
+- [ ] Métricas de ranking (MAP/NDCG)
+- [ ] Curvas de calibración por bins configurables
+- [ ] QQ-plot e histograma de residuales (regresión)
+- [ ] i18n ES/EN (mensajes y etiquetas)
+
+
+## Documentación
+------------------------
+**[Guía](docs/index.md)** | **[Referencia de API](docs/api.md)** | **[Changelog](CHANGELOG.md)**
+
+
+## Licencia
+------------------------
 MIT
 
-Autor
------
+
+## Autor
+------------------------
 **Ricardo Urdaneta**
 
 **[Linkedin](https://www.linkedin.com/in/ricardourdanetacastro)**
