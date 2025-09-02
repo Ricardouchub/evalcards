@@ -140,14 +140,14 @@ make_report(
   Puedes cambiar la carpeta con el argumento `out_dir` o usando una ruta en `path`.
 
 
-## Soporte de idioma 'es/en'
+## Soporte de idiomas 'es/en'
 -------------------
-Puedes generar reportes en español o inglés usando el parámetro `lang`
+Genera reportes en español o inglés usando el parámetro `lang`:
+`"es"` (español, default), `"en"` (inglés).
 
 ```python
 make_report(y_true, y_pred, path="rep.md", lang="en", title="My Model Report")
 ```
-Valores soportados: `"es"` (español, default), `"en"` (inglés).
 
 
 ## Entradas esperadas (formas comunes)
