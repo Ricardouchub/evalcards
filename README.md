@@ -132,7 +132,7 @@ make_report(
 )
 ```
 
-## Outs y PATH
+## Salidas y PATH
 -------------------
 - Un archivo **Markdown** con las métricas y referencias a imágenes.
 - Imágenes **PNG** (confusión, ROC/PR, ajuste, residuales).
