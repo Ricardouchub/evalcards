@@ -4,10 +4,10 @@ build-backend = "hatchling.build"
 
 [project]
 name = "evalcards"
-version = "0.2.7"  # <— bump si 0.2.6 ya está publicado
+version = "0.2.8"
 description = "Reportes de evaluación (clasificación/regresión/forecast) a Markdown con gráficos"
 readme = "README.md"
-requires-python = ">=3.9"            # <— deja solo ESTA (no duplicar)
+requires-python = ">=3.9"
 authors = [{ name = "Ricardo Urdaneta", email = "ricardourdanetacastro@gmail.com" }]
 license = { text = "MIT" }
 dependencies = [
