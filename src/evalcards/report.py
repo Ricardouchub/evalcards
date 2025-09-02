@@ -12,6 +12,8 @@ from sklearn.metrics import (
     roc_auc_score, RocCurveDisplay, PrecisionRecallDisplay
 )
 
+from .lang import LANG
+
 Task = Literal["auto", "classification", "regression", "forecast"]
 
 DEFAULT_OUTDIR = "evalcards_reports"
@@ -98,14 +100,18 @@ def make_report(
     y_proba: Optional[Sequence[float]] = None,
     *,
     path: str = "report.md",
-    title: str = "Reporte de Evaluación",
+    title: str = None,
     labels: Optional[Sequence] = None,
     task: Task = "auto",
     out_dir: Optional[str] = None,
-    # Forecast params:
     season: int = 1,
     insample: Optional[Sequence[float]] = None,
+    lang: str = "es",  # Nuevo parámetro
 ) -> str:
+    T = LANG.get(lang, LANG["es"])
+    if title is None:
+        title = T["title_default"]
+
     y_true = np.asarray(y_true)
     y_pred = np.asarray(y_pred)
     y_proba = None if y_proba is None else np.asarray(y_proba)
@@ -115,7 +121,7 @@ def make_report(
     if task == "auto":
         task = "classification" if _is_classification(y_true) else "regression"
 
-    lines = [f"# {title}", "", f"**Tarea:** {task}", ""]
+    lines = [f"# {title}", "", f"**{T['task']}:** {T.get(task, task)}", ""]
 
     if task == "classification":
         metrics = {
@@ -129,10 +135,8 @@ def make_report(
         }
         img_conf = _plot_confusion(y_true, y_pred, labels=labels, path=os.path.join(out_dir, "confusion.png"))
 
-        # --- y_proba: binaria (1D) o multiclase (2D OvR) ---
         roc_imgs, pr_imgs = [], []
         if y_proba is not None:
-            # Binaria
             if y_proba.ndim == 1:
                 try:
                     metrics["roc_auc"] = roc_auc_score(y_true, y_proba)
@@ -140,32 +144,29 @@ def make_report(
                     pass
                 roc_imgs.append(_plot_roc(y_true, y_proba, path=os.path.join(out_dir, "roc.png")))
                 pr_imgs.append(_plot_pr(y_true, y_proba, path=os.path.join(out_dir, "pr.png")))
-            # Multiclase OvR
             elif y_proba.ndim == 2:
                 n_classes = y_proba.shape[1]
                 try:
                     metrics["roc_auc_ovr_macro"] = roc_auc_score(y_true, y_proba, multi_class="ovr", average="macro")
                 except Exception:
                     pass
-                # nombres de clase (si no vienen: 0..K-1)
                 names = list(labels) if (labels is not None and len(labels) >= n_classes) else list(range(n_classes))
-                # Curvas por clase (columna i -> clase i)
                 for i in range(n_classes):
-                    pos = (y_true == i).astype(int)  # asume etiquetas 0..K-1 (caso más común)
+                    pos = (y_true == i).astype(int)
                     proba_i = y_proba[:, i]
                     cname = _sanitize(names[i] if i < len(names) else i)
                     roc_imgs.append(_plot_roc(pos, proba_i, path=os.path.join(out_dir, f"roc_class_{cname}.png")))
                     pr_imgs.append(_plot_pr(pos,  proba_i, path=os.path.join(out_dir, f"pr_class_{cname}.png")))
 
-        lines += ["## Métricas", "| métrica | valor |", "|---|---:|"]
+        lines += [f"## {T['metrics']}", f"| {T['metric']} | {T['value']} |", "|---|---:|"]
         for k, v in metrics.items():
             lines.append(f"| {k} | {v:.4f} |")
 
-        lines += ["", "## Gráficos", f"![confusion]({os.path.basename(img_conf)})"]
+        lines += ["", f"## {T['charts']}", f"![{T['confusion']}]({os.path.basename(img_conf)})"]
         for p in roc_imgs:
-            lines.append(f"![roc]({os.path.basename(p)})")
+            lines.append(f"![{T['roc']}]({os.path.basename(p)})")
         for p in pr_imgs:
-            lines.append(f"![pr]({os.path.basename(p)})")
+            lines.append(f"![{T['pr']}]({os.path.basename(p)})")
         lines.append("")
 
     elif task == "regression":
@@ -175,12 +176,12 @@ def make_report(
         r2 = r2_score(y_true, y_pred)
         fit = _plot_regression_fit(y_true, y_pred, path=os.path.join(out_dir, "fit.png"))
         resid = _plot_residuals(y_true, y_pred, path=os.path.join(out_dir, "resid.png"))
-        lines += ["## Métricas", "| métrica | valor |", "|---|---:|",
+        lines += [f"## {T['metrics']}", f"| {T['metric']} | {T['value']} |", "|---|---:|",
                   f"| MAE | {mae:.4f} |", f"| MSE | {mse:.4f} |",
                   f"| RMSE | {rmse:.4f} |", f"| R2 | {r2:.4f} |",
-                  "", "## Gráficos",
-                  f"![fit]({os.path.basename(fit)})",
-                  f"![resid]({os.path.basename(resid)})", ""]
+                  "", f"## {T['charts']}",
+                  f"![{T['fit']}]({os.path.basename(fit)})",
+                  f"![{T['resid']}]({os.path.basename(resid)})", ""]
 
     else:  # forecast
         mae = mean_absolute_error(y_true, y_pred)
@@ -190,13 +191,13 @@ def make_report(
         mase = _mase(y_true, y_pred, season=season, insample=insample)
         fit = _plot_regression_fit(y_true, y_pred, path=os.path.join(out_dir, "fit.png"))
         resid = _plot_residuals(y_true, y_pred, path=os.path.join(out_dir, "resid.png"))
-        lines += ["## Métricas", "| métrica | valor |", "|---|---:|",
+        lines += [f"## {T['metrics']}", f"| {T['metric']} | {T['value']} |", "|---|---:|",
                   f"| MAE | {mae:.4f} |", f"| MSE | {mse:.4f} |",
                   f"| RMSE | {rmse:.4f} |", f"| sMAPE (%) | {smape:.2f} |",
                   f"| MASE | {mase:.4f} |",
-                  "", "## Gráficos",
-                  f"![fit]({os.path.basename(fit)})",
-                  f"![resid]({os.path.basename(resid)})", ""]
+                  "", f"## {T['charts']}",
+                  f"![{T['fit']}]({os.path.basename(fit)})",
+                  f"![{T['resid']}]({os.path.basename(resid)})", ""]
 
     with open(path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
@@ -218,9 +219,9 @@ def _load_proba(path):
     import pandas as pd
     df = pd.read_csv(path)
     if df.shape[1] > 1:
-        return df.to_numpy()            # multiclase
+        return df.to_numpy()
     if df.shape[1] == 1:
-        return df.iloc[:, 0].to_numpy() # binaria
+        return df.iloc[:, 0].to_numpy()
     raise SystemExit(f"No pude leer probabilidades desde {path} (usa 1 columna o varias, una por clase).")
 
 def main():
@@ -232,7 +233,8 @@ def main():
     p.add_argument("--class-names", help="Nombres de clases separados por coma (solo multiclase)", default=None)
     p.add_argument("--out", default="report.md")
     p.add_argument("--outdir", help="Carpeta destino (por defecto ./evalcards_reports)", default=None)
-    p.add_argument("--title", default="Reporte de Evaluación")
+    p.add_argument("--title", default=None)
+    p.add_argument("--lang", default="es", help="Idioma (es/en)")  # Nuevo parámetro
 
     # Flags forecast
     p.add_argument("--forecast", action="store_true", help="Tratar como pronóstico (usa sMAPE/MASE)")
@@ -253,6 +255,6 @@ def main():
         y_true, y_pred, y_proba=y_proba,
         path=args.out, title=args.title, out_dir=args.outdir,
         task=task, season=args.season, insample=insample,
-        labels=labels,
+        labels=labels, lang=args.lang
     )
     print(os.path.abspath(out_path))
