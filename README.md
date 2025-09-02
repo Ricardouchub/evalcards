@@ -139,6 +139,20 @@ make_report(
 - Por defecto, si `path` no incluye carpeta, todo se guarda en `./evalcards_reports/`.  
   Puedes cambiar la carpeta con el argumento `out_dir` o usando una ruta en `path`.
 
+
+## Soporte de idioma 🇪🇸 🇬🇧
+-------------------
+Puedes generar reportes en español o inglés usando el parámetro `lang` (Python o CLI):
+
+```python
+make_report(y_true, y_pred, path="rep.md", lang="en", title="My Model Report")
+```
+```bash
+evalcards --y_true y_true.csv --y_pred y_pred.csv --lang en --out rep_en.md
+```
+Valores soportados: `"es"` (español, default), `"en"` (inglés).
+
+
 ## Entradas esperadas (formas comunes)
 -----------------------------------
 - **Clasificación**
