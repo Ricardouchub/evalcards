@@ -24,6 +24,7 @@ make_report(
     # Forecast:
     season: int = 1,
     insample: Optional[Sequence[float]] = None,
+    lang: str = "es"
 ) -> str
 ```
 
@@ -42,6 +43,9 @@ make_report(
 - **`out_dir`** (`str | None`): carpeta de salida. Si se indica, tiene prioridad sobre la carpeta por defecto.
 - **`season`** (`int`, forecast): periodicidad estacional para MASE (p.ej. 12 para mensual con patrón anual).
 - **`insample`** (`array-like 1D`, forecast): serie de entrenamiento usada para el denominador de **MASE**. Si no se pasa, se usa `y_true` como *fallback*.
+- **`lang`** (`str`, default `"es"`):  
+  Idioma del reporte: `"es"` (español, default), `"en"` (inglés).  
+  Aplica a todos los textos, títulos y etiquetas del Markdown generado.
 
 ### Retorno
 - **`str`**: ruta absoluta o relativa del **Markdown** generado.
@@ -98,6 +102,12 @@ make_report(y_test, y_hat, task="forecast", season=12, insample=y_train,
             path="rep_forecast.md", title="Forecast")
 ```
 
+### Ejemplo de uso multilenguaje
+
+```python
+make_report(y_true, y_pred, path="reporte.md", lang="es", title="Mi reporte")
+make_report(y_true, y_pred, path="report_en.md", lang="en", title="My report")
+```
 ---
 
 > Para una introducción paso a paso y ejemplos completos, ver la **[Guía completa](index.md)**.
