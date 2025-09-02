@@ -18,10 +18,10 @@ Los reportes incluyen tablas con métricas y PNGs listos para insertar en inform
   - [Clasificación multiclase (OvR)](#clasificación-multiclase-ovr)
   - [Regresión](#regresión)
   - [Forecasting](#forecasting)
+- [Soporte de idioma](#soporte-de-idioma)
 - [Buenas prácticas y troubleshooting](#buenas-prácticas-y-troubleshooting)
 - [Limitaciones actuales](#limitaciones-actuales)
 - [Versionado y compatibilidad](#versionado-y-compatibilidad)
-- [Contribuir](#contribuir)
 - [Licencia](#licencia)
 - [Referencia de API](#referencia-de-api)
 
@@ -181,6 +181,24 @@ Incluye: `MAE`, `MSE`, `RMSE`, **sMAPE (%)**, **MASE** + gráficos.
 
 ---
 
+## Soporte de idioma
+
+Desde la versión **0.2.8** puedes generar reportes en español o inglés con el parámetro `lang`:
+
+```python
+from evalcards import make_report
+
+make_report(y_true, y_pred, path="reporte.md", title="Mi modelo", lang="es")
+make_report(y_true, y_pred, path="report_en.md", title="My Model", lang="en")
+```
+
+También en CLI:
+
+```bash
+evalcards --y_true y_true.csv --y_pred y_pred.csv --lang en --out report_en.md
+```
+---
+
 ## Buenas prácticas y troubleshooting
 
 - **Probabilidades**:
@@ -216,14 +234,6 @@ Incluye: `MAE`, `MSE`, `RMSE`, **sMAPE (%)**, **MASE** + gráficos.
 - Soporta **Python 3.9 – 3.13**.
 - Sigue SemVer de forma aproximada (patch = fixes, minor = features, major = *breaking changes*).
 - Consulta `CHANGELOG.md` para detalles por versión.
-
----
-
-## Contribuir
-
-- Abre un *issue* con tu propuesta/mejora.
-- Añade tests en `tests/` y ejecuta `pytest -q`.
-- Se agradecen PRs con ejemplos y mejoras en docs.
 
 ---
 
