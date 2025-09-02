@@ -7,7 +7,7 @@
 [![CI](https://github.com/Ricardouchub/evalcards/actions/workflows/ci.yml/badge.svg)](https://github.com/Ricardouchub/evalcards/actions/workflows/ci.yml)
 [![Publish](https://github.com/Ricardouchub/evalcards/actions/workflows/release.yml/badge.svg)](https://github.com/Ricardouchub/evalcards/actions/workflows/release.yml)
 
-`evalcards` genera reportes de evaluación para **modelos supervisados** en **Markdown**, con **métricas** y **gráficos** listos para pegar en informes. Soporta:
+**[evalcards](https://pypi.org/project/evalcards/)** genera reportes de evaluación para **modelos supervisados** en **Markdown**, con **métricas** y **gráficos** listos para pegar en informes. Soporta:
 - **Clasificación**: binaria y **multiclase (OvR)** con curvas **ROC/PR** por clase.
 - **Regresión**.
 - **Forecasting** (series de tiempo): **sMAPE (%)** y **MASE**.
