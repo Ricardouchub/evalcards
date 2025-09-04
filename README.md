@@ -7,7 +7,7 @@
 [![CI](https://github.com/Ricardouchub/evalcards/actions/workflows/ci.yml/badge.svg)](https://github.com/Ricardouchub/evalcards/actions/workflows/ci.yml)
 [![Publish](https://github.com/Ricardouchub/evalcards/actions/workflows/release.yml/badge.svg)](https://github.com/Ricardouchub/evalcards/actions/workflows/release.yml)
 
-**[evalcards](https://pypi.org/project/evalcards/)** genera reportes de evaluación para **modelos supervisados** en **Markdown**, con **métricas** y **gráficos** listos para pegar en informes. Soporta:
+**[evalcards](https://pypi.org/project/evalcards/)** es una librería para Python que genera reportes de evaluación para **modelos supervisados** en **Markdown**, con **métricas** y **gráficos** listos para usar en informes. Soporta:
 - **Clasificación**: binaria y **multiclase (OvR)** con curvas **ROC/PR** por clase.
 - **Regresión**.
 - **Forecasting** (series de tiempo): **sMAPE (%)** y **MASE**.
@@ -157,17 +157,14 @@ El reporte incluirá métricas multi-label (subset accuracy, hamming loss, F1/pr
   Puedes cambiar la carpeta con el argumento `out_dir` o usando una ruta en `path`.
 
 
-## Soporte de idioma 🇪🇸 🇬🇧
+## Soporte de idiomas 'es/en'
 -------------------
-Puedes generar reportes en español o inglés usando el parámetro `lang` (Python o CLI):
+Genera reportes en español o inglés usando el parámetro `lang`:
+`"es"` (español, default), `"en"` (inglés).
 
 ```python
 make_report(y_true, y_pred, path="rep.md", lang="en", title="My Model Report")
 ```
-```bash
-evalcards --y_true y_true.csv --y_pred y_pred.csv --lang en --out rep_en.md
-```
-Valores soportados: `"es"` (español, default), `"en"` (inglés).
 
 
 ## Entradas esperadas (formas comunes)
