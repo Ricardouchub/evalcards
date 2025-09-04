@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.9] - 2025-09-04
+- Feature: **Soporte para clasificación multi-label**.  
+  - Se detecta automáticamente si `y_true` y `y_pred` son matrices 2D binarias con igual forma.
+  - Métricas generadas: `subset_accuracy`, `hamming_loss`, `f1_macro`, `f1_micro`, `precision_macro`, `recall_macro`, 
+
 ## [0.2.8] - 2025-09-02
 - Feature: soporte de idioma ("es"/"en") en reportes Markdown, gráficos y CLI mediante parámetro `lang`.
 - API/CLI: agrega parámetro `lang` a `make_report` y CLI.
