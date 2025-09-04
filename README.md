@@ -97,7 +97,21 @@ make_report(
 )
 ```
 
-**3) Regresión**
+**3) Multi-label**
+```python
+from sklearn.datasets import make_multilabel_classification
+from sklearn.linear_model import LogisticRegression
+from sklearn.multioutput import MultiOutputClassifier
+from evalcards import make_report
+
+X, y = make_multilabel_classification(n_samples=300, n_features=12, n_classes=4, n_labels=2, random_state=42)
+clf = MultiOutputClassifier(LogisticRegression(max_iter=1000)).fit(X, y)
+y_pred = clf.predict(X)
+make_report(y, y_pred, path="rep_multilabel.md", title="Multi-label Example", lang="en",
+            labels=[f"Tag_{i}" for i in range(y.shape[1])])
+```
+
+**4) Regresión**
 ```python
 from sklearn.datasets import make_regression
 from sklearn.ensemble import RandomForestRegressor
@@ -113,7 +127,7 @@ y_pred = reg.predict(X_te)
 make_report(y_te, y_pred, path="rep_reg.md", title="Regresión")
 ```
 
-**4) Forecasting (sMAPE/MASE)**
+**5) Forecasting (sMAPE/MASE)**
 ```python
 import numpy as np
 from evalcards import make_report
@@ -131,22 +145,6 @@ make_report(
     path="rep_forecast.md", title="Forecast"
 )
 ```
-
-## Ejemplo multi-label 
----------------
-```python
-from sklearn.datasets import make_multilabel_classification
-from sklearn.linear_model import LogisticRegression
-from sklearn.multioutput import MultiOutputClassifier
-from evalcards import make_report
-
-X, y = make_multilabel_classification(n_samples=300, n_features=12, n_classes=4, n_labels=2, random_state=42)
-clf = MultiOutputClassifier(LogisticRegression(max_iter=1000)).fit(X, y)
-y_pred = clf.predict(X)
-make_report(y, y_pred, path="rep_multilabel.md", title="Multi-label Example", lang="en",
-            labels=[f"Tag_{i}" for i in range(y.shape[1])])
-```
-El reporte incluirá métricas multi-label (subset accuracy, hamming loss, F1/precision/recall macro y micro) y una matriz de confusión por etiqueta.
 
 
 ## Salidas y PATH
