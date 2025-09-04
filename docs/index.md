@@ -16,6 +16,7 @@ Los reportes incluyen tablas con métricas y PNGs listos para insertar en inform
 - [Casos de uso](#casos-de-uso)
   - [Clasificación binaria](#clasificación-binaria)
   - [Clasificación multiclase (OvR)](#clasificación-multiclase-ovr)
+  - [Clasificación multi-label](#clasificación-multi-label)
   - [Regresión](#regresión)
   - [Forecasting](#forecasting)
 - [Soporte de idioma](#soporte-de-idioma)
