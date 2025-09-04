@@ -7,6 +7,7 @@ matplotlib.use("Agg", force=True)
 import matplotlib.pyplot as plt
 from sklearn.metrics import (
     accuracy_score, precision_score, recall_score, f1_score,
+    hamming_loss,
     ConfusionMatrixDisplay,
     mean_absolute_error, mean_squared_error, r2_score,
     roc_auc_score, RocCurveDisplay, PrecisionRecallDisplay
@@ -14,7 +15,7 @@ from sklearn.metrics import (
 
 from .lang import LANG
 
-Task = Literal["auto", "classification", "regression", "forecast"]
+Task = Literal["auto", "classification", "regression", "forecast", "multi-label"]
 
 DEFAULT_OUTDIR = "evalcards_reports"
 
@@ -39,11 +40,36 @@ def _is_classification(y_true) -> bool:
     uniq = np.unique(y).size
     return uniq <= max(20, int(0.05 * y.size))
 
+def _is_multilabel(y_true, y_pred) -> bool:
+    # Both must be 2D, same shape, all values in {0,1}
+    y_true = np.asarray(y_true)
+    y_pred = np.asarray(y_pred)
+    if y_true.ndim == 2 and y_pred.ndim == 2 and y_true.shape == y_pred.shape:
+        vals = np.unique(np.concatenate([y_true.ravel(), y_pred.ravel()]))
+        return np.all(np.isin(vals, [0, 1]))
+    return False
+
 def _plot_confusion(y_true, y_pred, labels=None, path="confusion.png"):
     fig, ax = plt.subplots()
     ConfusionMatrixDisplay.from_predictions(y_true, y_pred, display_labels=labels, ax=ax)
     fig.tight_layout(); fig.savefig(path, dpi=150); plt.close(fig)
     return path
+
+def _plot_multilabel_confusions(y_true, y_pred, labels, out_dir):
+    # One confusion matrix per label (binary)
+    paths = []
+    for i in range(y_true.shape[1]):
+        yt = y_true[:, i]
+        yp = y_pred[:, i]
+        label = labels[i] if labels and i < len(labels) else f"Label_{i}"
+        fname = f"confusion_{_sanitize(label)}.png"
+        path = os.path.join(out_dir, fname)
+        fig, ax = plt.subplots()
+        ConfusionMatrixDisplay.from_predictions(yt, yp, display_labels=[0,1], ax=ax)
+        ax.set_title(str(label))
+        fig.tight_layout(); fig.savefig(path, dpi=150); plt.close(fig)
+        paths.append((label, fname))
+    return paths
 
 def _plot_regression_fit(y_true, y_pred, path="fit.png"):
     fig, ax = plt.subplots()
@@ -106,7 +132,7 @@ def make_report(
     out_dir: Optional[str] = None,
     season: int = 1,
     insample: Optional[Sequence[float]] = None,
-    lang: str = "es",  # Nuevo parámetro
+    lang: str = "es",
 ) -> str:
     T = LANG.get(lang, LANG["es"])
     if title is None:
@@ -118,12 +144,40 @@ def make_report(
 
     out_dir, path = _resolve_out(path, out_dir)
 
+    # Detección multilabel si aplica
     if task == "auto":
-        task = "classification" if _is_classification(y_true) else "regression"
+        if _is_multilabel(y_true, y_pred):
+            task = "multi-label"
+        else:
+            task = "classification" if _is_classification(y_true) else "regression"
+    elif task == "multi-label":
+        if not _is_multilabel(y_true, y_pred):
+            raise ValueError("Para 'multi-label', y_true e y_pred deben ser arrays 2D binarios de igual forma.")
 
     lines = [f"# {title}", "", f"**{T['task']}:** {T.get(task, task)}", ""]
 
-    if task == "classification":
+    if task == "multi-label":
+        # Multi-label metrics
+        metrics = {
+            "subset_accuracy": accuracy_score(y_true, y_pred),
+            "hamming_loss": hamming_loss(y_true, y_pred),
+            "f1_macro": f1_score(y_true, y_pred, average="macro", zero_division=0),
+            "f1_micro": f1_score(y_true, y_pred, average="micro", zero_division=0),
+            "precision_macro": precision_score(y_true, y_pred, average="macro", zero_division=0),
+            "recall_macro": recall_score(y_true, y_pred, average="macro", zero_division=0),
+            "precision_micro": precision_score(y_true, y_pred, average="micro", zero_division=0),
+            "recall_micro": recall_score(y_true, y_pred, average="micro", zero_division=0),
+        }
+        conf_paths = _plot_multilabel_confusions(y_true, y_pred, labels, out_dir)
+        lines += [f"## {T['metrics']}", f"| metric | value |", "|---|---:|"]
+        for k, v in metrics.items():
+            lines.append(f"| {k} | {v:.4f} |")
+        lines += ["", f"## {T['charts']}"]
+        for label, fname in conf_paths:
+            lines.append(f"![Confusion {label}]({fname})")
+        lines.append("")
+
+    elif task == "classification":
         metrics = {
             "accuracy": accuracy_score(y_true, y_pred),
             "precision_macro": precision_score(y_true, y_pred, average="macro", zero_division=0),
@@ -206,6 +260,9 @@ def make_report(
 def _load_vec(path):
     import pandas as pd
     df = pd.read_csv(path)
+    # Multi-label: if more than 1 column, return the whole matrix
+    if df.shape[1] > 1:
+        return df.to_numpy()
     if df.shape[1] == 1:
         return df.iloc[:, 0].to_numpy()
     for c in ("y_true", "y_pred", "y_proba"):
@@ -227,14 +284,16 @@ def _load_proba(path):
 def main():
     import argparse
     p = argparse.ArgumentParser(description="Genera reporte de evaluación (Markdown)")
-    p.add_argument("--y_true", required=True, help="CSV con y_true (1 columna o columna 'y_true')")
-    p.add_argument("--y_pred", required=True, help="CSV con y_pred (1 columna o columna 'y_pred')")
-    p.add_argument("--proba", help="CSV con y_proba (binaria: 1 col; multiclase: N columnas)")
-    p.add_argument("--class-names", help="Nombres de clases separados por coma (solo multiclase)", default=None)
+    p.add_argument("--y_true", required=True, help="CSV con y_true (1 columna, varias columnas para multi-label)")
+    p.add_argument("--y_pred", required=True, help="CSV con y_pred (1 columna, varias columnas para multi-label)")
+    p.add_argument("--proba", help="CSV con y_proba (binaria: 1 col; multiclase/multilabel: N columnas)")
+    p.add_argument("--class-names", help="Nombres de clases/etiquetas separados por coma", default=None)
     p.add_argument("--out", default="report.md")
     p.add_argument("--outdir", help="Carpeta destino (por defecto ./evalcards_reports)", default=None)
     p.add_argument("--title", default=None)
-    p.add_argument("--lang", default="es", help="Idioma (es/en)")  # Nuevo parámetro
+    p.add_argument("--lang", default="es", help="Idioma (es/en)")
+    p.add_argument("--task", choices=["auto", "classification", "regression", "forecast", "multi-label"],
+                   default="auto", help="Tipo de tarea forzada (auto, classification, regression, forecast, multi-label)")
 
     # Flags forecast
     p.add_argument("--forecast", action="store_true", help="Tratar como pronóstico (usa sMAPE/MASE)")
@@ -249,7 +308,10 @@ def main():
     insample = _load_vec(args.insample) if args.insample else None
     labels = [s.strip() for s in args.class_names.split(",")] if args.class_names else None
 
-    task: Task = "forecast" if args.forecast else "auto"
+    # CLI: prefer --task, fallback to --forecast for backwards compat
+    task: Task = args.task
+    if args.forecast and args.task == "auto":
+        task = "forecast"
 
     out_path = make_report(
         y_true, y_pred, y_proba=y_proba,
