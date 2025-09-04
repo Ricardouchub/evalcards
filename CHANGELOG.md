@@ -1,17 +1,17 @@
 # Changelog
 
 ## [0.2.9] - 2025-09-04
-- Feature: **Soporte para clasificación multi-label**.  
+- **Feature: Soporte para clasificación multi-label**.  
   - Se detecta automáticamente si `y_true` y `y_pred` son matrices 2D binarias con igual forma.
   - Métricas generadas: `subset_accuracy`, `hamming_loss`, `f1_macro`, `f1_micro`, `precision_macro`, `recall_macro`, 
 
 ## [0.2.8] - 2025-09-02
-- Feature: soporte de idioma ("es"/"en") en reportes Markdown, gráficos y CLI mediante parámetro `lang`.
+- **Feature: soporte de idioma ("es"/"en")** en reportes Markdown, gráficos y CLI mediante parámetro `lang`.
 - API/CLI: agrega parámetro `lang` a `make_report` y CLI.
 - Docs/README: ejemplos y explicación de uso multilenguaje.
 
 ## [0.2.7] - 2025-08-30
-- Packaging: declara `requires-python >=3.9` y **Trove classifiers** (3.9–3.13) en `pyproject.toml`.
+- Packaging: declara `requires-python >=3.9` y Trove classifiers (3.9–3.13) en `pyproject.toml`.
 - Docs: descripción actualizada (incluye forecast) y correcciones menores de formato.
 
 ## [0.2.6] - 2025-08-30
