@@ -65,6 +65,15 @@ Los archivos se escriben en la carpeta resuelta por `out_dir`/`path`.
 - `precision_weighted`, `recall_weighted`, `f1_weighted`
 - **Binaria** (con `y_proba`): `roc_auc`, curvas **ROC** y **PR**.
 - **Multiclase** (con `y_proba` 2D): `roc_auc_ovr_macro`, curvas **ROC/PR por clase** (OvR).
+- **Multi-label**
+   Si `y_true` y `y_pred` son arrays 2D binarios `(n_samples, n_labels)`, se evalúan como **multi-label**:
+    - Métricas: `subset_accuracy`, `hamming_loss`, `f1_macro`, `f1_micro`, `precision_macro`, `recall_macro`, `precision_micro`, `recall_micro`.
+    - El reporte incluye una matriz de confusión por etiqueta.
+    - Puedes pasar `labels` como lista de nombres por etiqueta.
+    - Ejemplo:
+    ```python
+    make_report(y_true, y_pred, task="multi-label", labels=["tagA", "tagB", "tagC"])
+    ```
 
 **Regresión**
 - `MAE`, `MSE`, `RMSE`, `R²`.
