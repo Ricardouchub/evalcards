@@ -211,7 +211,7 @@ Funciona con **cualquier modelo** que produzca `predict` (y opcionalmente `predi
 
 ### Ideas
 ------------------------
-- [ ] Soporte **multi-label**
+- [ ] Soporte **multi-label** (*en proceso*)
 - [ ] Métricas de ranking (MAP/NDCG)
 - [ ] Curvas de calibración por bins configurables
 - [ ] QQ-plot e histograma de residuales (regresión)
