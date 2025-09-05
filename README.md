@@ -155,7 +155,7 @@ make_report(
   Puedes cambiar la carpeta con el argumento `out_dir` o usando una ruta en `path`.
 
 
-## Soporte de idiomas 'es/en'
+## Idiomas 'ES/EN'
 -------------------
 Genera reportes en español o inglés usando el parámetro `lang`:
 `"es"` (español, default), `"en"` (inglés).
@@ -180,8 +180,8 @@ make_report(y_true, y_pred, path="rep.md", lang="en", title="My Model Report")
 ## Compatibilidad de modelos
 ------------------------
 Funciona con **cualquier modelo** que produzca `predict` (y opcionalmente `predict_proba`):
-- scikit-learn, XGBoost/LightGBM/CatBoost, statsmodels, Prophet/NeuralProphet, Keras/PyTorch (si pasas tus arrays).
-- Multiclase: pasa `y_proba` como matriz (una columna por clase) y, si quieres, `labels` para nombres.
+- scikit-learn, XGBoost/LightGBM/CatBoost, statsmodels, Prophet/NeuralProphet, Keras/PyTorch.
+- Multiclase: `y_proba` como matriz (una columna por clase) y  `labels` para nombres.
 
 
 ## Roadmap
@@ -211,7 +211,7 @@ Funciona con **cualquier modelo** que produzca `predict` (y opcionalmente `predi
 
 ### Ideas
 ------------------------
-- [ ] Soporte **multi-label** (*en proceso*)
+- [x] Soporte **multi-label** (*en proceso*)
 - [ ] Métricas de ranking (MAP/NDCG)
 - [ ] Curvas de calibración por bins configurables
 - [ ] QQ-plot e histograma de residuales (regresión)
