@@ -220,7 +220,7 @@ Funciona con **cualquier modelo** que produzca `predict` (y opcionalmente `predi
 
 ## Documentación
 ------------------------
-**[Guía](docs/index.md)** | **[Referencia de API](docs/api.md)** | **[Changelog](CHANGELOG.md)**
+**[Guía](docs/index.md)** | **[Referencia de API](docs/api.md)** | **[Changelog](CHANGELOG.md)** | **[Demo Visual](docs/DEMO.md)**
 
 
 ## Licencia
