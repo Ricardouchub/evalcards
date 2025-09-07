@@ -2,7 +2,7 @@
 
 A continuación, una vista rápida de lo que genera **evalcards**.
 
-## Collage general
+## Collage
 
 ![overview](img/evalcards_demo/overview_all.png)
 
