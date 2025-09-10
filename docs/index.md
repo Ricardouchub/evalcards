@@ -150,7 +150,7 @@ y_pred = clf.predict(X)
 make_report(y, y_pred, path="rep_multilabel.md", title="Multi-label Example", lang="en",
             labels=[f"Tag_{i}" for i in range(y.shape[1])])
 ```
-Genera una tabla de métricas multi-label (subset accuracy, hamming loss, F1/precision/recall macro y micro) y una matriz de confusión por etiqueta.
+Genera una tabla de métricas multi-label (subset accuracy, hamming loss, F1/precision/recall macro y micro), una matriz de confusión por etiqueta y, si se pasan probabilidades (`y_proba` 2D), curvas ROC y PR por etiqueta.
 
 ---
 
