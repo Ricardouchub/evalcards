@@ -70,6 +70,7 @@ Los archivos se escriben en la carpeta resuelta por `out_dir`/`path`.
     - Métricas: `subset_accuracy`, `hamming_loss`, `f1_macro`, `f1_micro`, `precision_macro`, `recall_macro`, `precision_micro`, `recall_micro`.
     - El reporte incluye una matriz de confusión por etiqueta.
     - Puedes pasar `labels` como lista de nombres por etiqueta.
+    - Además de las métricas y matrices de confusión por etiqueta, si se pasa `y_proba` como matriz 2D del mismo shape que `y_true`, el reporte incluye también archivos PNG de curvas **ROC** y **PR** por etiqueta (`roc_label_<etiqueta>.png`, `pr_label_<etiqueta>.png`).
     - Ejemplo:
     ```python
     make_report(y_true, y_pred, task="multi-label", labels=["tagA", "tagB", "tagC"])
