@@ -1,6 +1,6 @@
 from __future__ import annotations
 import os
-from typing import Optional, Sequence, Literal
+from typing import Optional, Sequence, Literal, List
 import numpy as np
 import matplotlib
 matplotlib.use("Agg", force=True)
@@ -10,7 +10,9 @@ from sklearn.metrics import (
     hamming_loss,
     ConfusionMatrixDisplay,
     mean_absolute_error, mean_squared_error, r2_score,
-    roc_auc_score, RocCurveDisplay, PrecisionRecallDisplay
+    roc_auc_score, RocCurveDisplay, PrecisionRecallDisplay,
+    average_precision_score, matthews_corrcoef, balanced_accuracy_score, log_loss,
+    median_absolute_error
 )
 
 from .lang import LANG
@@ -41,7 +43,6 @@ def _is_classification(y_true) -> bool:
     return uniq <= max(20, int(0.05 * y.size))
 
 def _is_multilabel(y_true, y_pred) -> bool:
-    # Both must be 2D, same shape, all values in {0,1}
     y_true = np.asarray(y_true)
     y_pred = np.asarray(y_pred)
     if y_true.ndim == 2 and y_pred.ndim == 2 and y_true.shape == y_pred.shape:
@@ -56,13 +57,12 @@ def _plot_confusion(y_true, y_pred, labels=None, path="confusion.png"):
     return path
 
 def _plot_multilabel_confusions(y_true, y_pred, labels, out_dir):
-    # One confusion matrix per label (binary)
     paths = []
     for i in range(y_true.shape[1]):
         yt = y_true[:, i]
         yp = y_pred[:, i]
-        label = labels[i] if labels and i < len(labels) else f"Label_{i}"
-        fname = f"confusion_{_sanitize(label)}.png"
+        label = labels[i] if labels and i < len(labels) else f"Cat_{i}"
+        fname = f"confusion_{label}.png".replace(" ", "_")
         path = os.path.join(out_dir, fname)
         fig, ax = plt.subplots()
         ConfusionMatrixDisplay.from_predictions(yt, yp, display_labels=[0,1], ax=ax)
@@ -70,6 +70,39 @@ def _plot_multilabel_confusions(y_true, y_pred, labels, out_dir):
         fig.tight_layout(); fig.savefig(path, dpi=150); plt.close(fig)
         paths.append((label, fname))
     return paths
+
+def _plot_roc(y_true, y_proba, path="roc.png"):
+    fig, ax = plt.subplots()
+    RocCurveDisplay.from_predictions(y_true, y_proba, ax=ax)
+    fig.tight_layout(); fig.savefig(path, dpi=150); plt.close(fig)
+    return path
+
+def _plot_pr(y_true, y_proba, path="pr.png"):
+    fig, ax = plt.subplots()
+    PrecisionRecallDisplay.from_predictions(y_true, y_proba, ax=ax)
+    fig.tight_layout(); fig.savefig(path, dpi=150); plt.close(fig)
+    return path
+
+def _plot_multilabel_roc_pr(y_true, y_proba, labels, out_dir):
+    roc_paths, pr_paths = [], []
+    n_labels = y_true.shape[1]
+    for i in range(n_labels):
+        yt = y_true[:, i]
+        yp = y_proba[:, i]
+        label = labels[i] if labels and i < len(labels) else f"Cat_{i}"
+        fname_roc = os.path.join(out_dir, f"roc_label_{label}.png".replace(" ", "_"))
+        fname_pr = os.path.join(out_dir, f"pr_label_{label}.png".replace(" ", "_"))
+        try:
+            _plot_roc(yt, yp, fname_roc)
+            roc_paths.append((label, f"roc_label_{label}.png".replace(" ", "_")))
+        except Exception:
+            pass
+        try:
+            _plot_pr(yt, yp, fname_pr)
+            pr_paths.append((label, f"pr_label_{label}.png".replace(" ", "_")))
+        except Exception:
+            pass
+    return roc_paths, pr_paths
 
 def _plot_regression_fit(y_true, y_pred, path="fit.png"):
     fig, ax = plt.subplots()
@@ -86,18 +119,6 @@ def _plot_residuals(y_true, y_pred, path="resid.png"):
     ax.scatter(y_pred, resid, s=10)
     ax.axhline(0)
     ax.set_xlabel("y predicho"); ax.set_ylabel("residual"); ax.set_title("Residuales")
-    fig.tight_layout(); fig.savefig(path, dpi=150); plt.close(fig)
-    return path
-
-def _plot_roc(y_true, y_proba, path="roc.png"):
-    fig, ax = plt.subplots()
-    RocCurveDisplay.from_predictions(y_true, y_proba, ax=ax)
-    fig.tight_layout(); fig.savefig(path, dpi=150); plt.close(fig)
-    return path
-
-def _plot_pr(y_true, y_proba, path="pr.png"):
-    fig, ax = plt.subplots()
-    PrecisionRecallDisplay.from_predictions(y_true, y_proba, ax=ax)
     fig.tight_layout(); fig.savefig(path, dpi=150); plt.close(fig)
     return path
 
@@ -133,6 +154,7 @@ def make_report(
     season: int = 1,
     insample: Optional[Sequence[float]] = None,
     lang: str = "es",
+    metrics: Optional[List[str]] = None,
 ) -> str:
     T = LANG.get(lang, LANG["es"])
     if title is None:
@@ -156,9 +178,9 @@ def make_report(
 
     lines = [f"# {title}", "", f"**{T['task']}:** {T.get(task, task)}", ""]
 
+    # -------- MULTI-LABEL -------
     if task == "multi-label":
-        # Multi-label metrics
-        metrics = {
+        base_metrics = {
             "subset_accuracy": accuracy_score(y_true, y_pred),
             "hamming_loss": hamming_loss(y_true, y_pred),
             "f1_macro": f1_score(y_true, y_pred, average="macro", zero_division=0),
@@ -168,17 +190,48 @@ def make_report(
             "precision_micro": precision_score(y_true, y_pred, average="micro", zero_division=0),
             "recall_micro": recall_score(y_true, y_pred, average="micro", zero_division=0),
         }
+        base_metrics["balanced_accuracy_macro"] = np.mean([
+            balanced_accuracy_score(y_true[:, i], y_pred[:, i]) for i in range(y_true.shape[1])
+        ])
+        base_metrics["mcc_macro"] = np.mean([
+            matthews_corrcoef(y_true[:, i], y_pred[:, i]) for i in range(y_true.shape[1])
+        ])
+        if y_proba is not None and y_proba.shape == y_true.shape:
+            try:
+                base_metrics["roc_auc_macro"] = np.mean([
+                    roc_auc_score(y_true[:, i], y_proba[:, i]) for i in range(y_true.shape[1])
+                ])
+                base_metrics["pr_auc_macro"] = np.mean([
+                    average_precision_score(y_true[:, i], y_proba[:, i]) for i in range(y_true.shape[1])
+                ])
+                base_metrics["roc_auc_micro"] = roc_auc_score(y_true.ravel(), y_proba.ravel())
+                base_metrics["pr_auc_micro"] = average_precision_score(y_true.ravel(), y_proba.ravel())
+            except Exception:
+                pass
+
+        if metrics is not None:
+            base_metrics = {k: v for k, v in base_metrics.items() if k in metrics}
+
         conf_paths = _plot_multilabel_confusions(y_true, y_pred, labels, out_dir)
+        roc_paths, pr_paths = [], []
+        if y_proba is not None and y_proba.shape == y_true.shape:
+            roc_paths, pr_paths = _plot_multilabel_roc_pr(y_true, y_proba, labels, out_dir)
+
         lines += [f"## {T['metrics']}", f"| metric | value |", "|---|---:|"]
-        for k, v in metrics.items():
+        for k, v in base_metrics.items():
             lines.append(f"| {k} | {v:.4f} |")
         lines += ["", f"## {T['charts']}"]
         for label, fname in conf_paths:
             lines.append(f"![Confusion {label}]({fname})")
+        for label, fname in roc_paths:
+            lines.append(f"![ROC {label}]({fname})")
+        for label, fname in pr_paths:
+            lines.append(f"![PR {label}]({fname})")
         lines.append("")
 
+    # -------- CLASSIFICATION -------
     elif task == "classification":
-        metrics = {
+        metrics_dict = {
             "accuracy": accuracy_score(y_true, y_pred),
             "precision_macro": precision_score(y_true, y_pred, average="macro", zero_division=0),
             "recall_macro": recall_score(y_true, y_pred, average="macro", zero_division=0),
@@ -186,14 +239,22 @@ def make_report(
             "precision_weighted": precision_score(y_true, y_pred, average="weighted", zero_division=0),
             "recall_weighted": recall_score(y_true, y_pred, average="weighted", zero_division=0),
             "f1_weighted": f1_score(y_true, y_pred, average="weighted", zero_division=0),
+            "balanced_accuracy": balanced_accuracy_score(y_true, y_pred),
+            "mcc": matthews_corrcoef(y_true, y_pred),
         }
-        img_conf = _plot_confusion(y_true, y_pred, labels=labels, path=os.path.join(out_dir, "confusion.png"))
+        if y_proba is not None:
+            try:
+                metrics_dict["log_loss"] = log_loss(y_true, y_proba)
+            except Exception:
+                pass
 
+        img_conf = _plot_confusion(y_true, y_pred, labels=labels, path=os.path.join(out_dir, "confusion.png"))
         roc_imgs, pr_imgs = [], []
         if y_proba is not None:
             if y_proba.ndim == 1:
                 try:
-                    metrics["roc_auc"] = roc_auc_score(y_true, y_proba)
+                    metrics_dict["roc_auc"] = roc_auc_score(y_true, y_proba)
+                    metrics_dict["pr_auc"] = average_precision_score(y_true, y_proba)
                 except Exception:
                     pass
                 roc_imgs.append(_plot_roc(y_true, y_proba, path=os.path.join(out_dir, "roc.png")))
@@ -201,7 +262,8 @@ def make_report(
             elif y_proba.ndim == 2:
                 n_classes = y_proba.shape[1]
                 try:
-                    metrics["roc_auc_ovr_macro"] = roc_auc_score(y_true, y_proba, multi_class="ovr", average="macro")
+                    metrics_dict["roc_auc_ovr_macro"] = roc_auc_score(y_true, y_proba, multi_class="ovr", average="macro")
+                    metrics_dict["pr_auc_macro"] = average_precision_score(y_true, y_proba)
                 except Exception:
                     pass
                 names = list(labels) if (labels is not None and len(labels) >= n_classes) else list(range(n_classes))
@@ -212,8 +274,11 @@ def make_report(
                     roc_imgs.append(_plot_roc(pos, proba_i, path=os.path.join(out_dir, f"roc_class_{cname}.png")))
                     pr_imgs.append(_plot_pr(pos,  proba_i, path=os.path.join(out_dir, f"pr_class_{cname}.png")))
 
+        if metrics is not None:
+            metrics_dict = {k: v for k, v in metrics_dict.items() if k in metrics}
+
         lines += [f"## {T['metrics']}", f"| {T['metric']} | {T['value']} |", "|---|---:|"]
-        for k, v in metrics.items():
+        for k, v in metrics_dict.items():
             lines.append(f"| {k} | {v:.4f} |")
 
         lines += ["", f"## {T['charts']}", f"![{T['confusion']}]({os.path.basename(img_conf)})"]
@@ -223,33 +288,67 @@ def make_report(
             lines.append(f"![{T['pr']}]({os.path.basename(p)})")
         lines.append("")
 
+    # -------- REGRESSION -------
     elif task == "regression":
         mae = mean_absolute_error(y_true, y_pred)
         mse = mean_squared_error(y_true, y_pred)
         rmse = float(np.sqrt(mse))
         r2 = r2_score(y_true, y_pred)
+        medae = median_absolute_error(y_true, y_pred)
+        mape = np.mean(np.abs((y_true - y_pred) / (y_true + 1e-8))) * 100
+        rmsle = np.sqrt(np.mean((np.log1p(y_true) - np.log1p(y_pred)) ** 2))
         fit = _plot_regression_fit(y_true, y_pred, path=os.path.join(out_dir, "fit.png"))
         resid = _plot_residuals(y_true, y_pred, path=os.path.join(out_dir, "resid.png"))
-        lines += [f"## {T['metrics']}", f"| {T['metric']} | {T['value']} |", "|---|---:|",
-                  f"| MAE | {mae:.4f} |", f"| MSE | {mse:.4f} |",
-                  f"| RMSE | {rmse:.4f} |", f"| R2 | {r2:.4f} |",
-                  "", f"## {T['charts']}",
+
+        metrics_dict = {
+            "MAE": mae,
+            "MSE": mse,
+            "RMSE": rmse,
+            "R2": r2,
+            "MedAE": medae,
+            "MAPE": mape,
+            "RMSLE": rmsle,
+        }
+        if metrics is not None:
+            metrics_dict = {k: v for k, v in metrics_dict.items() if k in metrics}
+
+        lines += [f"## {T['metrics']}", f"| {T['metric']} | {T['value']} |", "|---|---:|"]
+        for k, v in metrics_dict.items():
+            lines.append(f"| {k} | {v:.4f} |")
+        lines += ["", f"## {T['charts']}",
                   f"![{T['fit']}]({os.path.basename(fit)})",
                   f"![{T['resid']}]({os.path.basename(resid)})", ""]
 
-    else:  # forecast
+    # -------- FORECAST -------
+    else:
         mae = mean_absolute_error(y_true, y_pred)
         mse = mean_squared_error(y_true, y_pred)
         rmse = float(np.sqrt(mse))
         smape = _smape(y_true, y_pred)
         mase = _mase(y_true, y_pred, season=season, insample=insample)
+        medae = median_absolute_error(y_true, y_pred)
+        mape = np.mean(np.abs((y_true - y_pred) / (y_true + 1e-8))) * 100
+        rmsle = np.sqrt(np.mean((np.log1p(y_true) - np.log1p(y_pred)) ** 2))
         fit = _plot_regression_fit(y_true, y_pred, path=os.path.join(out_dir, "fit.png"))
         resid = _plot_residuals(y_true, y_pred, path=os.path.join(out_dir, "resid.png"))
-        lines += [f"## {T['metrics']}", f"| {T['metric']} | {T['value']} |", "|---|---:|",
-                  f"| MAE | {mae:.4f} |", f"| MSE | {mse:.4f} |",
-                  f"| RMSE | {rmse:.4f} |", f"| sMAPE (%) | {smape:.2f} |",
-                  f"| MASE | {mase:.4f} |",
-                  "", f"## {T['charts']}",
+
+        metrics_dict = {
+            "MAE": mae,
+            "MSE": mse,
+            "RMSE": rmse,
+            "sMAPE (%)": smape,
+            "MASE": mase,
+            "MedAE": medae,
+            "MAPE": mape,
+            "RMSLE": rmsle,
+        }
+        if metrics is not None:
+            metrics_dict = {k: v for k, v in metrics_dict.items() if k in metrics}
+
+        lines += [f"## {T['metrics']}", f"| {T['metric']} | {T['value']} |", "|---|---:|"]
+        for k, v in metrics_dict.items():
+            lines.append(f"| {k} | {v:.4f} |")
+        lines += ["", f"## {T['charts']}",
                   f"![{T['fit']}]({os.path.basename(fit)})",
                   f"![{T['resid']}]({os.path.basename(resid)})", ""]
 
@@ -260,7 +359,6 @@ def make_report(
 def _load_vec(path):
     import pandas as pd
     df = pd.read_csv(path)
-    # Multi-label: if more than 1 column, return the whole matrix
     if df.shape[1] > 1:
         return df.to_numpy()
     if df.shape[1] == 1:
@@ -294,8 +392,7 @@ def main():
     p.add_argument("--lang", default="es", help="Idioma (es/en)")
     p.add_argument("--task", choices=["auto", "classification", "regression", "forecast", "multi-label"],
                    default="auto", help="Tipo de tarea forzada (auto, classification, regression, forecast, multi-label)")
-
-    # Flags forecast
+    p.add_argument("--metrics", help="Lista de métricas a mostrar separadas por coma (opcional)", default=None)
     p.add_argument("--forecast", action="store_true", help="Tratar como pronóstico (usa sMAPE/MASE)")
     p.add_argument("--season", type=int, default=1, help="Periodicidad estacional para MASE (ej. 12)")
     p.add_argument("--insample", help="CSV con serie insample para MASE (opcional)")
@@ -307,8 +404,8 @@ def main():
     y_proba = _load_proba(args.proba) if args.proba else None
     insample = _load_vec(args.insample) if args.insample else None
     labels = [s.strip() for s in args.class_names.split(",")] if args.class_names else None
+    metrics = [s.strip() for s in args.metrics.split(",")] if args.metrics else None
 
-    # CLI: prefer --task, fallback to --forecast for backwards compat
     task: Task = args.task
     if args.forecast and args.task == "auto":
         task = "forecast"
@@ -317,6 +414,6 @@ def main():
         y_true, y_pred, y_proba=y_proba,
         path=args.out, title=args.title, out_dir=args.outdir,
         task=task, season=args.season, insample=insample,
-        labels=labels, lang=args.lang
+        labels=labels, lang=args.lang, metrics=metrics
     )
     print(os.path.abspath(out_path))
