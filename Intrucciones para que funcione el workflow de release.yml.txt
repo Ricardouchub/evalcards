@@ -1,0 +1,7 @@
+# En pyproject.toml siempre cambiar las versiones, ejemplo: version = "0.2.6"
+
+git add pyproject.toml
+git commit -m "chore(release): v0.2.9 (trusted publishing)"
+git tag v0.2.9
+git push origin main
+git push origin v0.2.9
