@@ -107,6 +107,7 @@ from evalcards import make_report
 X, y = make_multilabel_classification(n_samples=300, n_features=12, n_classes=4, n_labels=2, random_state=42)
 clf = MultiOutputClassifier(LogisticRegression(max_iter=1000)).fit(X, y)
 y_pred = clf.predict(X)
+
 make_report(y, y_pred, y_proba=proba_matrix, path="rep_multilabel.md", title="Multi-label Example", lang="en",
             labels=[f"Tag_{i}" for i in range(y.shape[1])])
 ```
