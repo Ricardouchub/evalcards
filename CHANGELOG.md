@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.10] - 2025-09-10
+- **Mejora: Multi-label robusto**  
+  - Ahora genera curvas ROC/PR por etiqueta en clasificación multi-label (si se pasan probabilidades).
+  - Tests ampliados para incluir casos multi-label con probabilidades y métricas ROC/PR.
+
 ## [0.2.9] - 2025-09-04
 - **Feature: Soporte para clasificación multi-label**.  
   - Se detecta automáticamente si `y_true` y `y_pred` son matrices 2D binarias con igual forma.
