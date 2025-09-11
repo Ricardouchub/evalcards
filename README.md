@@ -219,7 +219,7 @@ Funciona con **cualquier modelo** que produzca `predict` (y opcionalmente `predi
 - [ ] Métricas de ranking (MAP/NDCG)
 - [ ] Curvas de calibración por bins configurables
 - [ ] QQ-plot e histograma de residuales (regresión)
-- [x] i18n ES/EN (mensajes y etiquetas)
+- [x] i18n ES/EN (*completado*)
 
 
 ## Documentación
