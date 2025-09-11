@@ -4,6 +4,7 @@
 - **Clasificación**: binaria y **multiclase (One-vs-Rest)** con curvas **ROC** y **PR** por clase.
 - **Regresión**.
 - **Forecasting** (series de tiempo): **sMAPE (%)** y **MASE**.
+- **Clasificación multi-label**: métricas, matriz de confusión por etiqueta y curvas **ROC/PR por etiqueta** si se pasan probabilidades.
 
 Los reportes incluyen tablas con métricas y PNGs listos para insertar en informes o PRs.
 
@@ -75,11 +76,13 @@ print(path)  # -> ruta del Markdown generado
 - **Probabilidades** (`y_proba`) opcionales:
   - **Binaria**: vector 1D con prob. de la clase positiva.
   - **Multiclase**: matriz `(n_samples, n_classes)` con una columna por clase (mismo orden que tu modelo).
+  - **Multi-label**: matriz `(n_samples, n_labels)` con probabilidad de cada etiqueta.
 - **Salida**:
   - Un archivo **Markdown** (por defecto `report.md`) con la tabla de métricas y referencias a imágenes.
   - **PNGs**:
     - Clasificación: `confusion.png` y (si hay probabilidades) `roc*.png`, `pr*.png`.  
       Multiclase: `roc_class_<clase>.png`, `pr_class_<clase>.png` **por clase**.
+      Multi-label: `confusion_<etiqueta>.png`, `roc_label_<etiqueta>.png`, `pr_label_<etiqueta>.png` **por etiqueta**.
     - Regresión/Forecasting: `fit.png` (y vs ŷ) y `resid.png` (residuales).
 - **Ubicación**:
   - Si `path` **no** incluye carpeta, todo se guarda en `./evalcards_reports/`.  
@@ -147,10 +150,13 @@ from evalcards import make_report
 X, y = make_multilabel_classification(n_samples=300, n_features=12, n_classes=4, n_labels=2, random_state=42)
 clf = MultiOutputClassifier(LogisticRegression(max_iter=1000)).fit(X, y)
 y_pred = clf.predict(X)
-make_report(y, y_pred, path="rep_multilabel.md", title="Multi-label Example", lang="en",
+# Probabilidad por etiqueta (matriz n_samples x n_labels)
+y_proba = np.stack([m.predict_proba(X)[:,1] for m in clf.estimators_], axis=1)
+
+make_report(y, y_pred, y_proba=y_proba, path="rep_multilabel.md", title="Multi-label Example", lang="en",
             labels=[f"Tag_{i}" for i in range(y.shape[1])])
 ```
-Genera una tabla de métricas multi-label (subset accuracy, hamming loss, F1/precision/recall macro y micro), una matriz de confusión por etiqueta y, si se pasan probabilidades (`y_proba` 2D), curvas ROC y PR por etiqueta.
+Genera una tabla de métricas multi-label (subset accuracy, hamming loss, F1/precision/recall macro y micro), una matriz de confusión por etiqueta y, si se pasan probabilidades (`y_proba` 2D), curvas ROC y PR por etiqueta (`roc_label_<etiqueta>.png`, `pr_label_<etiqueta>.png`).
 
 ---
 
@@ -222,6 +228,7 @@ evalcards --y_true y_true.csv --y_pred y_pred.csv --lang en --out report_en.md
 - **Probabilidades**:
   - Binaria: `y_proba` como vector 1D (prob. de la clase positiva).
   - Multiclase: matriz `(n_samples, n_classes)`; cuida el **orden de columnas** (usa `clf.classes_` en scikit-learn).
+  - Multi-label: matriz `(n_samples, n_labels)`; cada columna corresponde a la probabilidad de cada etiqueta.
 - **Gráficos sin GUI**:
   - Guardado a PNG no requiere GUI. Si tu entorno no tiene backend gráfico, puedes forzar:
     - Variable: `MPLBACKEND=Agg`
@@ -241,7 +248,6 @@ evalcards --y_true y_true.csv --y_pred y_pred.csv --lang en --out report_en.md
 
 ## Limitaciones actuales
 
-- No **multi-label** (varias etiquetas verdaderas por muestra).
 - En multiclase: AUC macro OvR y curvas por clase (no micro/macro PR/ROC agregadas por ahora).
 - Sin métricas de ranking (MAP/NDCG) ni calibración (Brier/curva de calibración) por ahora.
 
