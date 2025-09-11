@@ -11,9 +11,7 @@
 - **Clasificación**: binaria y **multiclase (OvR)** con curvas **ROC/PR** por clase.
 - **Regresión**.
 - **Forecasting** (series de tiempo): **sMAPE (%)** y **MASE**.
-
-
-
+- **Clasificación multi-label**: matriz de confusión y curvas **ROC/PR por etiqueta** si se pasan probabilidades.
 
 ## Instalación
 -----------
@@ -31,6 +29,7 @@ from evalcards import make_report
 # y_proba (opcional):
 #   - binaria: vector 1D con prob. de la clase positiva
 #   - multiclase: matriz (n_samples, n_classes) con prob. por clase
+#   - multi-label: matriz (n_samples, n_labels) con prob. por etiqueta
 
 path = make_report(
     y_true, y_pred,
@@ -43,10 +42,10 @@ print(path)  # ruta del reporte generado
 
 ## Qué evalúa
 ------------------
-- **Clasificación (binaria/multiclase)**  
+- **Clasificación (binaria/multiclase/multi-label)**  
   Métricas: `accuracy`, `precision/recall/F1` (macro/weighted),  
-  AUC: `roc_auc` (binaria) y `roc_auc_ovr_macro` (multiclase).  
-  Gráficos: **matriz de confusión**, **ROC** y **PR** (por clase en multiclase).
+  AUC: `roc_auc` (binaria), `roc_auc_ovr_macro` (multiclase), `roc_auc_macro` (multi-label).  
+  Gráficos: **matriz de confusión**, **ROC** y **PR** (por clase en multiclase, por etiqueta en multi-label).
 
 - **Regresión**  
   Métricas: `MAE`, `MSE`, `RMSE`, `R²`.  
@@ -107,7 +106,10 @@ from evalcards import make_report
 X, y = make_multilabel_classification(n_samples=300, n_features=12, n_classes=4, n_labels=2, random_state=42)
 clf = MultiOutputClassifier(LogisticRegression(max_iter=1000)).fit(X, y)
 y_pred = clf.predict(X)
-make_report(y, y_pred, y_proba=proba_matrix, path="rep_multilabel.md", title="Multi-label Example", lang="en",
+# Probabilidad por etiqueta (matriz n_samples x n_labels)
+y_proba = np.stack([m.predict_proba(X)[:,1] for m in clf.estimators_], axis=1)
+
+make_report(y, y_pred, y_proba=y_proba, path="rep_multilabel.md", title="Multi-label Example", lang="en",
             labels=[f"Tag_{i}" for i in range(y.shape[1])])
 ```
 
@@ -146,14 +148,16 @@ make_report(
 )
 ```
 
-
 ## Salidas y PATH
 -------------------
 - Un archivo **Markdown** con las métricas y referencias a imágenes.
 - Imágenes **PNG** (confusión, ROC/PR, ajuste, residuales).
+  - **Binaria**: `confusion.png`, `roc.png`, `pr.png`
+  - **Multiclase**: `confusion.png`, `roc_class_<clase>.png`, `pr_class_<clase>.png`
+  - **Multi-label**: `confusion_<etiqueta>.png`, `roc_label_<etiqueta>.png`, `pr_label_<etiqueta>.png`
+  - **Regresión/Forecast**: `fit.png`, `resid.png`
 - Por defecto, si `path` no incluye carpeta, todo se guarda en `./evalcards_reports/`.  
   Puedes cambiar la carpeta con el argumento `out_dir` o usando una ruta en `path`.
-
 
 ## Idiomas 'ES/EN'
 -------------------
@@ -164,7 +168,6 @@ Genera reportes en español o inglés usando el parámetro `lang`:
 make_report(y_true, y_pred, path="rep.md", lang="en", title="My Model Report")
 ```
 
-
 ## Entradas esperadas (formas comunes)
 -----------------------------------
 - **Clasificación**
@@ -173,6 +176,7 @@ make_report(y_true, y_pred, path="rep.md", lang="en", title="My Model Report")
   - `y_proba` (opcional):
     - **Binaria**: vector 1D con prob. de la clase positiva.
     - **Multiclase**: matriz `(n_samples, n_classes)` con una columna por clase (mismo orden que tu modelo).
+    - **Multi-label**: matriz `(n_samples, n_labels)` con una columna por etiqueta (proba de pertenecer).
 - **Regresión / Forecast**
   - `y_true`, `y_pred`: arrays 1D de floats.
   - `insample` (forecast): serie de entrenamiento para MASE; `season` según la estacionalidad (ej. 12 mensual/anual).
@@ -211,11 +215,11 @@ Funciona con **cualquier modelo** que produzca `predict` (y opcionalmente `predi
 
 ### Ideas
 ------------------------
-- [x] Soporte **multi-label** (*en proceso*)
+- [x] Soporte **multi-label** (*completado*)
 - [ ] Métricas de ranking (MAP/NDCG)
 - [ ] Curvas de calibración por bins configurables
 - [ ] QQ-plot e histograma de residuales (regresión)
-- [ ] i18n ES/EN (mensajes y etiquetas)
+- [x] i18n ES/EN (mensajes y etiquetas)
 
 
 ## Documentación
@@ -233,4 +237,3 @@ MIT
 **Ricardo Urdaneta**
 
 **[Linkedin](https://www.linkedin.com/in/ricardourdanetacastro)**
-
