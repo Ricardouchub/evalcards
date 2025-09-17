@@ -8,9 +8,9 @@
 [![Publish](https://github.com/Ricardouchub/evalcards/actions/workflows/release.yml/badge.svg)](https://github.com/Ricardouchub/evalcards/actions/workflows/release.yml)
 
 **[evalcards](https://pypi.org/project/evalcards/)** es una librería para Python que genera reportes de evaluación para **modelos supervisados** en **Markdown**, con **métricas** y **gráficos** listos para usar en informes. Soporta:
-- **Clasificación**: binaria y **multiclase (OvR)** con curvas **ROC/PR** por clase.
-- **Regresión**.
-- **Forecasting** (series de tiempo): **sMAPE (%)** y **MASE**.
+- **Clasificación**: binaria y **multiclase (OvR)** con métricas como `accuracy`, `balanced_accuracy`, `mcc`, `log_loss` (si hay probabilidades), `roc_auc`/`pr_auc`, además de curvas **ROC/PR** por clase.
+- **Regresión**: `MAE`, `MSE`, `RMSE`, `R²`, `MedAE`, `MAPE`, `RMSLE`.
+- **Forecasting** (series de tiempo): `MAE`, `MSE`, `RMSE`, `MedAE`, `MAPE`, `RMSLE`, **sMAPE (%)** y **MASE**.
 - **Clasificación multi-label**: matriz de confusión y curvas **ROC/PR por etiqueta** si se pasan probabilidades.
 
 ## Instalación
@@ -42,18 +42,18 @@ print(path)  # ruta del reporte generado
 
 ## Qué evalúa
 ------------------
-- **Clasificación (binaria/multiclase/multi-label)**  
-  Métricas: `accuracy`, `precision/recall/F1` (macro/weighted),  
-  AUC: `roc_auc` (binaria), `roc_auc_ovr_macro` (multiclase), `roc_auc_macro` (multi-label).  
+- **Clasificación (binaria/multiclase/multi-label)**
+  Métricas: `accuracy`, `precision/recall/F1` (macro/weighted), `balanced_accuracy`, `mcc`, `log_loss` (si hay probabilidades).
+  AUC / AUPRC: `roc_auc` y `pr_auc` (binaria), `roc_auc_ovr_macro` y `pr_auc_macro` (multiclase), `roc_auc_macro` (multi-label).
   Gráficos: **matriz de confusión**, **ROC** y **PR** (por clase en multiclase, por etiqueta en multi-label).
 
-- **Regresión**  
-  Métricas: `MAE`, `MSE`, `RMSE`, `R²`.  
+- **Regresión**
+  Métricas: `MAE`, `MSE`, `RMSE`, `R²`, `MedAE`, `MAPE`, `RMSLE`.
   Gráficos: **Ajuste (y vs ŷ)** y **Residuales**.
 
-- **Forecasting**  
-  Métricas: `MAE`, `MSE`, `RMSE`, **sMAPE (%)**, **MASE**.  
-  Parámetros extra: `season` (p.ej. 12) e `insample` (serie de entrenamiento para MASE).  
+- **Forecasting**
+  Métricas: `MAE`, `MSE`, `RMSE`, `MedAE`, `MAPE`, `RMSLE`, **sMAPE (%)**, **MASE**.
+  Parámetros extra: `season` (p.ej. 12) e `insample` (serie de entrenamiento para MASE).
   Gráficos: **Ajuste** y **Residuales**.
 
 ## Ejemplos 
@@ -79,31 +79,7 @@ make_report(y_te, y_pred, y_proba=proba, path="rep_bin.md", title="Clasificació
 ```python
 from sklearn.datasets import load_iris
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-from evalcards import make_report
-
-X, y = load_iris(return_X_y=True)
-X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.3, random_state=0)
-
-clf = RandomForestClassifier(random_state=0).fit(X_tr, y_tr)
-y_pred = clf.predict(X_te)
-proba = clf.predict_proba(X_te)  # (n_samples, n_classes)
-
-make_report(
-    y_te, y_pred, y_proba=proba,
-    labels=[f"Clase_{c}" for c in clf.classes_],   # opcional (nombres por clase)
-    path="rep_multi.md", title="Multiclase OvR"
-)
-```
-
-**3) Multi-label**
-```python
-from sklearn.datasets import make_multilabel_classification
-from sklearn.linear_model import LogisticRegression
-from sklearn.multioutput import MultiOutputClassifier
-from evalcards import make_report
-
-X, y = make_multilabel_classification(n_samples=300, n_features=12, n_classes=4, n_labels=2, random_state=42)
+@@ -107,51 +107,51 @@ X, y = make_multilabel_classification(n_samples=300, n_features=12, n_classes=4,
 clf = MultiOutputClassifier(LogisticRegression(max_iter=1000)).fit(X, y)
 y_pred = clf.predict(X)
 # Probabilidad por etiqueta (matriz n_samples x n_labels)
@@ -129,7 +105,7 @@ y_pred = reg.predict(X_te)
 make_report(y_te, y_pred, path="rep_reg.md", title="Regresión")
 ```
 
-**5) Forecasting (sMAPE/MASE)**
+**5) Forecasting (sMAPE/MASE + métricas extra)**
 ```python
 import numpy as np
 from evalcards import make_report
@@ -155,19 +131,7 @@ make_report(
   - **Binaria**: `confusion.png`, `roc.png`, `pr.png`
   - **Multiclase**: `confusion.png`, `roc_class_<clase>.png`, `pr_class_<clase>.png`
   - **Multi-label**: `confusion_<etiqueta>.png`, `roc_label_<etiqueta>.png`, `pr_label_<etiqueta>.png`
-  - **Regresión/Forecast**: `fit.png`, `resid.png`
-- Por defecto, si `path` no incluye carpeta, todo se guarda en `./evalcards_reports/`.  
-  Puedes cambiar la carpeta con el argumento `out_dir` o usando una ruta en `path`.
-
-## Idiomas 'ES/EN'
--------------------
-Genera reportes en español o inglés usando el parámetro `lang`:
-`"es"` (español, default), `"en"` (inglés).
-
-```python
-make_report(y_true, y_pred, path="rep.md", lang="en", title="My Model Report")
-```
-
+@@ -171,52 +171,52 @@ make_report(y_true, y_pred, path="rep.md", lang="en", title="My Model Report")
 ## Entradas esperadas (formas comunes)
 -----------------------------------
 - **Clasificación**
@@ -193,8 +157,8 @@ Funciona con **cualquier modelo** que produzca `predict` (y opcionalmente `predi
 ### v0.3 — Salida y métricas clave
 - [ ] Reporte HTML autocontenido (`format="md|html"`)
 - [ ] Export JSON** de métricas/paths (`--export-json`)
-- [ ] Métricas nuevas (clasificación): AUPRC, Balanced Accuracy, MCC, Log Loss
-- [ ] Métricas nuevas (regresión): MAPE, MedAE, RMSLE
+- [x] Métricas nuevas (clasificación): AUPRC, Balanced Accuracy, MCC, Log Loss
+- [x] Métricas nuevas (regresión): MAPE, MedAE, RMSLE
 
 ### v0.4 — Multiclase y umbrales
 - [ ] ROC/PR micro & macro (multiclase) + `roc_auc_macro`, `average_precision_macro`
