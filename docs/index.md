@@ -1,9 +1,9 @@
 # evalcards — Guía completa
 
 `evalcards` genera **reportes de evaluación** en **Markdown** con **métricas** y **gráficos** para:
-- **Clasificación**: binaria y **multiclase (One-vs-Rest)** con curvas **ROC** y **PR** por clase.
-- **Regresión**.
-- **Forecasting** (series de tiempo): **sMAPE (%)** y **MASE**.
+- **Clasificación**: binaria y **multiclase (One-vs-Rest)** con métricas `accuracy`, `balanced_accuracy`, `mcc`, `log_loss` (si hay probabilidades), `roc_auc`/`pr_auc` y curvas **ROC/PR** por clase.
+- **Regresión**: `MAE`, `MSE`, `RMSE`, `R²`, `MedAE`, `MAPE`, `RMSLE`.
+- **Forecasting** (series de tiempo): `MAE`, `MSE`, `RMSE`, `MedAE`, `MAPE`, `RMSLE`, **sMAPE (%)** y **MASE**.
 - **Clasificación multi-label**: métricas, matriz de confusión por etiqueta y curvas **ROC/PR por etiqueta** si se pasan probabilidades.
 
 Los reportes incluyen tablas con métricas y PNGs listos para insertar en informes o PRs.
@@ -110,7 +110,7 @@ proba = clf.predict_proba(Xte)[:, 1]  # prob. de la clase positiva
 make_report(yte, y_pred, y_proba=proba, path="rep_bin.md", title="Clasificación binaria")
 ```
 
-Incluye: `accuracy`, `precision/recall/F1` (macro/weighted), **AUC ROC** y curvas **ROC/PR**.
+Incluye: `accuracy`, `precision/recall/F1` (macro/weighted), `balanced_accuracy`, `mcc`, `log_loss` (si hay probabilidades), **AUC ROC** (`roc_auc`) y **AUPRC** (`pr_auc`), además de curvas **ROC/PR**.
 
 ---
 
@@ -136,7 +136,7 @@ make_report(
 )
 ```
 
-Incluye: métricas macro/weighted, **AUC macro OvR** (`roc_auc_ovr_macro`) y **curvas ROC/PR por clase**.
+Incluye: métricas macro/weighted, `balanced_accuracy`, `mcc`, `log_loss` (si hay probabilidades), **AUC macro OvR** (`roc_auc_ovr_macro`), **AUPRC macro** (`pr_auc_macro`) y **curvas ROC/PR por clase**.
 
 ---
 
@@ -177,7 +177,7 @@ y_pred = reg.predict(Xte)
 make_report(yte, y_pred, path="rep_reg.md", title="Regresión")
 ```
 
-Incluye: `MAE`, `MSE`, `RMSE`, `R²` + gráficos de **ajuste** y **residuales**.
+Incluye: `MAE`, `MSE`, `RMSE`, `R²`, `MedAE`, `MAPE`, `RMSLE` + gráficos de **ajuste** y **residuales**.
 
 ---
 
@@ -201,7 +201,7 @@ make_report(
 )
 ```
 
-Incluye: `MAE`, `MSE`, `RMSE`, **sMAPE (%)**, **MASE** + gráficos.
+Incluye: `MAE`, `MSE`, `RMSE`, `MedAE`, `MAPE`, `RMSLE`, **sMAPE (%)**, **MASE** + gráficos.
 
 ---
 
