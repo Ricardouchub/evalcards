@@ -63,8 +63,10 @@ Los archivos se escriben en la carpeta resuelta por `out_dir`/`path`.
 - `accuracy`
 - `precision_macro`, `recall_macro`, `f1_macro`
 - `precision_weighted`, `recall_weighted`, `f1_weighted`
-- **Binaria** (con `y_proba`): `roc_auc`, curvas **ROC** y **PR**.
-- **Multiclase** (con `y_proba` 2D): `roc_auc_ovr_macro`, curvas **ROC/PR por clase** (OvR).
+- `balanced_accuracy`
+- `mcc`
+- **Binaria** (con `y_proba`): `roc_auc`, `pr_auc` (AUPRC), `log_loss`, curvas **ROC** y **PR**.
+- **Multiclase** (con `y_proba` 2D): `roc_auc_ovr_macro`, `pr_auc_macro` (AUPRC macro), `log_loss`, curvas **ROC/PR por clase** (OvR).
 - **Multi-label**
    Si `y_true` y `y_pred` son arrays 2D binarios `(n_samples, n_labels)`, se evalúan como **multi-label**:
     - Métricas: `subset_accuracy`, `hamming_loss`, `f1_macro`, `f1_micro`, `precision_macro`, `recall_macro`, `precision_micro`, `recall_micro`.
@@ -77,10 +79,10 @@ Los archivos se escriben en la carpeta resuelta por `out_dir`/`path`.
     ```
 
 **Regresión**
-- `MAE`, `MSE`, `RMSE`, `R²`.
+- `MAE`, `MSE`, `RMSE`, `R²`, `MedAE`, `MAPE`, `RMSLE`.
 
 **Forecasting**
-- `MAE`, `MSE`, `RMSE`
+- `MAE`, `MSE`, `RMSE`, `MedAE`, `MAPE`, `RMSLE`
 - **`sMAPE (%)`**
 - **`MASE`** (requiere `season` y preferentemente `insample`).
 
