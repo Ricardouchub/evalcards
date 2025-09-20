@@ -12,6 +12,7 @@
 - **Regresión**: `MAE`, `MSE`, `RMSE`, `R²`, `MedAE`, `MAPE`, `RMSLE`.
 - **Forecasting** (series de tiempo): `MAE`, `MSE`, `RMSE`, `MedAE`, `MAPE`, `RMSLE`, **sMAPE (%)** y **MASE**.
 - **Clasificación multi-label**: matriz de confusión y curvas **ROC/PR por etiqueta** si se pasan probabilidades.
+- **Export JSON** métricas y rutas de imágenes para integración en pipelines (nuevo en v0.2.11).
 
 ## Instalación
 -----------
@@ -132,6 +133,8 @@ make_report(
   - **Multiclase**: `confusion.png`, `roc_class_<clase>.png`, `pr_class_<clase>.png`
   - **Multi-label**: `confusion_<etiqueta>.png`, `roc_label_<etiqueta>.png`, `pr_label_<etiqueta>.png`
 @@ -171,52 +171,52 @@ make_report(y_true, y_pred, path="rep.md", lang="en", title="My Model Report")
+- JSON (opcional): contiene `metrics`, `charts` y `markdown`.
+
 ## Entradas esperadas (formas comunes)
 -----------------------------------
 - **Clasificación**
@@ -156,7 +159,7 @@ Funciona con **cualquier modelo** que produzca `predict` (y opcionalmente `predi
 ------------------------
 ### v0.3 — Salida y métricas clave
 - [ ] Reporte HTML autocontenido (`format="md|html"`)
-- [ ] Export JSON** de métricas/paths (`--export-json`)
+- [x] Export JSON** de métricas/paths (`--export-json`)
 - [x] Métricas nuevas (clasificación): AUPRC, Balanced Accuracy, MCC, Log Loss
 - [x] Métricas nuevas (regresión): MAPE, MedAE, RMSLE
 
