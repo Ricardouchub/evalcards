@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.11] - 2025-09-20
+- **Feature: Export JSON de métricas y rutas**  
+  - Nuevo parámetro `export_json` en `make_report` y `--export-json` en la CLI para generar un JSON con las métricas calculadas y las rutas (basenames) de las imágenes generadas.
+  - Cuando se pasa `export_json`, la función devuelve `(ruta_markdown, info_dict)` donde `info_dict` contiene las keys `metrics`, `charts` y `markdown`.
+  - Si `export_json` se pasa como nombre (sin carpeta), el JSON se colocará en la carpeta de salida resuelta; si se pasa una ruta absoluta, se escribirá allí (se crean directorios si es necesario).
+- Tests añadidos que cubren export JSON para clasificación binaria, multi‑label y regresión.
+
 ## [0.2.10] - 2025-09-10
 - **Mejora: Multi-label robusto**  
   - Ahora genera curvas ROC/PR por etiqueta en clasificación multi-label (si se pasan probabilidades).
