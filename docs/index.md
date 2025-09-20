@@ -20,6 +20,7 @@ Los reportes incluyen tablas con métricas y PNGs listos para insertar en inform
   - [Clasificación multi-label](#clasificación-multi-label)
   - [Regresión](#regresión)
   - [Forecasting](#forecasting)
+- [Export JSON (integración)](#export-json-integración)
 - [Soporte de idioma](#soporte-de-idioma)
 - [Buenas prácticas y troubleshooting](#buenas-prácticas-y-troubleshooting)
 - [Limitaciones actuales](#limitaciones-actuales)
@@ -63,7 +64,7 @@ path = make_report(
     y_true, y_pred,
     y_proba=proba,     # opcional
     path="reporte.md",
-    title="Mi modelo"
+    export_json="info.json"  # << opcional: genera también info.json y devuelve (path, info)
 )
 print(path)  # -> ruta del Markdown generado
 ```
@@ -87,7 +88,15 @@ print(path)  # -> ruta del Markdown generado
 - **Ubicación**:
   - Si `path` **no** incluye carpeta, todo se guarda en `./evalcards_reports/`.  
   - Puedes fijar carpeta con `out_dir` o pasando una **ruta completa** en `path`.
-
+- **JSON** (opcional): 
+Estructura típica del JSON:
+```json
+{
+  "metrics": { ... },
+  "charts": { "confusion": "confusion.png", "roc": [...], "pr": [...] },
+  "markdown": "report.md"
+}
+```
 ---
 
 ## Casos de uso
@@ -205,9 +214,26 @@ Incluye: `MAE`, `MSE`, `RMSE`, `MedAE`, `MAPE`, `RMSLE`, **sMAPE (%)**, **MASE**
 
 ---
 
+## Export JSON (integración)
+
+- Para pipelines y CI, puedes solicitar un JSON con las métricas y las rutas de los PNGs generados.
+- Ejemplo en Python:
+```python
+md_path, info = make_report(y_true, y_pred, path="rep.md", export_json="rep.json")
+# info["metrics"], info["charts"], info["markdown"]
+```
+- Ejemplo CLI:
+```bash
+evalcards --y_true y_true.csv --y_pred y_pred.csv --out report.md --export-json report.json
+```
+- Nota: si pasas `export_json` como un path absoluto, el JSON se escribirá allí; si pasas solo un nombre, se colocará en la carpeta de salida resuelta.
+
+---
+
+
 ## Soporte de idioma
 
-Desde la versión **0.2.8** puedes generar reportes en español o inglés con el parámetro `lang`:
+Puedes generar reportes en español o inglés con el parámetro `lang`:
 
 ```python
 from evalcards import make_report
