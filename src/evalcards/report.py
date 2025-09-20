@@ -1,6 +1,7 @@
 from __future__ import annotations
 import os
-from typing import Optional, Sequence, Literal, List
+import json
+from typing import Optional, Sequence, Literal, List, Dict, Any, Tuple
 import numpy as np
 import matplotlib
 matplotlib.use("Agg", force=True)
@@ -155,7 +156,13 @@ def make_report(
     insample: Optional[Sequence[float]] = None,
     lang: str = "es",
     metrics: Optional[List[str]] = None,
-) -> str:
+    export_json: Optional[str] = None,
+) -> str | Tuple[str, Dict[str, Any]]:
+    """
+    Genera el reporte Markdown. Compatibilidad:
+    - Si export_json no se pasa: devuelve la ruta del markdown (str) -- comportamiento anterior.
+    - Si export_json se pasa: genera también el JSON y devuelve (markdown_path, info_dict).
+    """
     T = LANG.get(lang, LANG["es"])
     if title is None:
         title = T["title_default"]
@@ -177,6 +184,10 @@ def make_report(
             raise ValueError("Para 'multi-label', y_true e y_pred deben ser arrays 2D binarios de igual forma.")
 
     lines = [f"# {title}", "", f"**{T['task']}:** {T.get(task, task)}", ""]
+
+    # Prepare structures to return
+    metrics_out: Dict[str, Any] = {}
+    charts_out: Dict[str, Any] = {}
 
     # -------- MULTI-LABEL -------
     if task == "multi-label":
@@ -216,6 +227,12 @@ def make_report(
         roc_paths, pr_paths = [], []
         if y_proba is not None and y_proba.shape == y_true.shape:
             roc_paths, pr_paths = _plot_multilabel_roc_pr(y_true, y_proba, labels, out_dir)
+
+        # fill output structures
+        metrics_out = base_metrics
+        charts_out["confusion"] = {label: fname for label, fname in conf_paths}
+        charts_out["roc"] = {label: fname for label, fname in roc_paths}
+        charts_out["pr"] = {label: fname for label, fname in pr_paths}
 
         lines += [f"## {T['metrics']}", f"| metric | value |", "|---|---:|"]
         for k, v in base_metrics.items():
@@ -277,6 +294,12 @@ def make_report(
         if metrics is not None:
             metrics_dict = {k: v for k, v in metrics_dict.items() if k in metrics}
 
+        # fill output structures
+        metrics_out = metrics_dict
+        charts_out["confusion"] = os.path.basename(img_conf)
+        charts_out["roc"] = [os.path.basename(p) for p in roc_imgs]
+        charts_out["pr"] = [os.path.basename(p) for p in pr_imgs]
+
         lines += [f"## {T['metrics']}", f"| {T['metric']} | {T['value']} |", "|---|---:|"]
         for k, v in metrics_dict.items():
             lines.append(f"| {k} | {v:.4f} |")
@@ -296,7 +319,10 @@ def make_report(
         r2 = r2_score(y_true, y_pred)
         medae = median_absolute_error(y_true, y_pred)
         mape = np.mean(np.abs((y_true - y_pred) / (y_true + 1e-8))) * 100
-        rmsle = np.sqrt(np.mean((np.log1p(y_true) - np.log1p(y_pred)) ** 2))
+        try:
+            rmsle = np.sqrt(np.mean((np.log1p(y_true) - np.log1p(y_pred)) ** 2))
+        except Exception:
+            rmsle = float("nan")
         fit = _plot_regression_fit(y_true, y_pred, path=os.path.join(out_dir, "fit.png"))
         resid = _plot_residuals(y_true, y_pred, path=os.path.join(out_dir, "resid.png"))
 
@@ -311,6 +337,11 @@ def make_report(
         }
         if metrics is not None:
             metrics_dict = {k: v for k, v in metrics_dict.items() if k in metrics}
+
+        # fill output structures
+        metrics_out = metrics_dict
+        charts_out["fit"] = os.path.basename(fit)
+        charts_out["resid"] = os.path.basename(resid)
 
         lines += [f"## {T['metrics']}", f"| {T['metric']} | {T['value']} |", "|---|---:|"]
         for k, v in metrics_dict.items():
@@ -328,7 +359,10 @@ def make_report(
         mase = _mase(y_true, y_pred, season=season, insample=insample)
         medae = median_absolute_error(y_true, y_pred)
         mape = np.mean(np.abs((y_true - y_pred) / (y_true + 1e-8))) * 100
-        rmsle = np.sqrt(np.mean((np.log1p(y_true) - np.log1p(y_pred)) ** 2))
+        try:
+            rmsle = np.sqrt(np.mean((np.log1p(y_true) - np.log1p(y_pred)) ** 2))
+        except Exception:
+            rmsle = float("nan")
         fit = _plot_regression_fit(y_true, y_pred, path=os.path.join(out_dir, "fit.png"))
         resid = _plot_residuals(y_true, y_pred, path=os.path.join(out_dir, "resid.png"))
 
@@ -345,6 +379,11 @@ def make_report(
         if metrics is not None:
             metrics_dict = {k: v for k, v in metrics_dict.items() if k in metrics}
 
+        # fill output structures
+        metrics_out = metrics_dict
+        charts_out["fit"] = os.path.basename(fit)
+        charts_out["resid"] = os.path.basename(resid)
+
         lines += [f"## {T['metrics']}", f"| {T['metric']} | {T['value']} |", "|---|---:|"]
         for k, v in metrics_dict.items():
             lines.append(f"| {k} | {v:.4f} |")
@@ -354,6 +393,22 @@ def make_report(
 
     with open(path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
+
+    # If requested, write JSON export and return info
+    info: Dict[str, Any] = {
+        "metrics": {k: (float(v) if isinstance(v, (np.floating, float, int)) else v) for k, v in metrics_out.items()},
+        "charts": charts_out,
+        "markdown": os.path.basename(path),
+    }
+
+    if export_json:
+        json_path = export_json if os.path.isabs(export_json) else os.path.join(out_dir, export_json)
+        # ensure directory exists for provided json path
+        os.makedirs(os.path.dirname(os.path.abspath(json_path)), exist_ok=True)
+        with open(json_path, "w", encoding="utf-8") as f:
+            json.dump(info, f, indent=2, ensure_ascii=False)
+        return path, info
+
     return path
 
 def _load_vec(path):
@@ -396,6 +451,7 @@ def main():
     p.add_argument("--forecast", action="store_true", help="Tratar como pronóstico (usa sMAPE/MASE)")
     p.add_argument("--season", type=int, default=1, help="Periodicidad estacional para MASE (ej. 12)")
     p.add_argument("--insample", help="CSV con serie insample para MASE (opcional)")
+    p.add_argument("--export-json", help="Ruta (o nombre) del JSON a generar con métricas y paths (opcional)", default=None)
 
     args = p.parse_args()
 
@@ -410,10 +466,19 @@ def main():
     if args.forecast and args.task == "auto":
         task = "forecast"
 
-    out_path = make_report(
+    result = make_report(
         y_true, y_pred, y_proba=y_proba,
         path=args.out, title=args.title, out_dir=args.outdir,
         task=task, season=args.season, insample=insample,
-        labels=labels, lang=args.lang, metrics=metrics
+        labels=labels, lang=args.lang, metrics=metrics,
+        export_json=args.export_json
     )
-    print(os.path.abspath(out_path))
+    # result may be str or (path, info)
+    if isinstance(result, tuple):
+        md_path, info = result
+        print(os.path.abspath(md_path))
+        if args.export_json:
+            json_path = args.export_json if os.path.isabs(args.export_json) else os.path.join(os.path.dirname(os.path.abspath(md_path)), args.export_json)
+            print(os.path.abspath(json_path))
+    else:
+        print(os.path.abspath(result))
