@@ -127,13 +127,38 @@ make_report(
 
 ## Salidas y PATH
 -------------------
-- Un archivo **Markdown** con las métricas y referencias a imágenes.
-- Imágenes **PNG** (confusión, ROC/PR, ajuste, residuales).
-  - **Binaria**: `confusion.png`, `roc.png`, `pr.png`
-  - **Multiclase**: `confusion.png`, `roc_class_<clase>.png`, `pr_class_<clase>.png`
-  - **Multi-label**: `confusion_<etiqueta>.png`, `roc_label_<etiqueta>.png`, `pr_label_<etiqueta>.png`
-@@ -171,52 +171,52 @@ make_report(y_true, y_pred, path="rep.md", lang="en", title="My Model Report")
-- JSON (opcional): contiene `metrics`, `charts` y `markdown`.
+- Un archivo **Markdown** con las métricas y referencias a imágenes generadas.
+- Imágenes **PNG** (según el tipo de tarea):
+  - **Clasificación binaria**:  
+    - `confusion.png` (matriz de confusión global)  
+    - `roc.png` (curva ROC)  
+    - `pr.png` (curva Precision-Recall)
+  - **Clasificación multiclase (OvR)**:  
+    - `confusion.png` (matriz de confusión global)  
+    - `roc_class_<clase>.png` (curva ROC para cada clase, One-vs-Rest)  
+    - `pr_class_<clase>.png` (curva PR para cada clase)
+  - **Clasificación multi-label**:  
+    - `confusion_<etiqueta>.png` (matriz de confusión para cada etiqueta)  
+    - `roc_label_<etiqueta>.png` (curva ROC para cada etiqueta, si se pasan probabilidades)  
+    - `pr_label_<etiqueta>.png` (curva PR para cada etiqueta, si se pasan probabilidades)
+  - **Regresión / Forecasting**:  
+    - `fit.png` (dispersión y vs ŷ, ajuste del modelo)  
+    - `resid.png` (gráfico de residuales)
+
+- **Ubicación de archivos**:
+  - Por defecto, los archivos se guardan en la carpeta `./evalcards_reports/` si `path` no incluye ruta.
+  - Puedes cambiar la carpeta con el argumento `out_dir` o usando una ruta en `path`.
+
+- **Export JSON (opcional)**:  
+  Si usas el parámetro `export_json`, también se genera un archivo `.json` con las métricas y los nombres/rutas de los PNG generados.
+
+- **Ejemplo de nombres multi-label**:  
+  Si usas `labels=["A","B","C"]`, los archivos serán:  
+  - `confusion_A.png`, `roc_label_A.png`, `pr_label_A.png`  
+  - `confusion_B.png`, `roc_label_B.png`, `pr_label_B.png`  
+  - etc.
+
+- **JSON (opcional)**: contiene `metrics`, `charts` y `markdown`.
 
 ## Entradas esperadas (formas comunes)
 -----------------------------------
