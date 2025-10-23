@@ -14,13 +14,13 @@ evalcards is a small Python library that generates evaluation reports for superv
 - Multi-label classification: confusion matrices and ROC/PR curves per label if probabilities are provided.
 - JSON export of metrics and image paths for CI/pipeline integration (new in v0.2.11).
 
-## Installation
+## Install
 
 ```bash
 pip install evalcards
 ```
 
-## Quick start (Python)
+## Quick start
 
 ```python
 from evalcards import make_report
@@ -41,7 +41,7 @@ path = make_report(
 print(path)  # path to generated report
 ```
 
-## What it evaluates
+## What evaluates
 
 - Classification (binary / multiclass / multi-label)
   Metrics: `accuracy`, `precision/recall/F1` (macro/weighted), `balanced_accuracy`, `mcc`, `log_loss` (if probabilities).
@@ -188,7 +188,7 @@ make_report(
 
 - JSON structure: contains `metrics`, `charts` and `markdown`.
 
-## Expected inputs (common shapes)
+## Expected inputs
 
 - Classification
   - `y_true`: integers 0..K-1 (or string labels).
