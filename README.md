@@ -1,3 +1,9 @@
+<p align="right">
+  <a href="https://github.com/Ricardouchub/evalcards/blob/master/README-english.md">
+    README English
+  </a>
+</p>
+
 # evalcards
 
 [![PyPI version](https://img.shields.io/pypi/v/evalcards?logo=pypi&label=PyPI)](https://pypi.org/project/evalcards/)
