@@ -1,6 +1,6 @@
 from __future__ import annotations
 import os
-from typing import Optional, Sequence, Literal, List, Dict, Any, Tuple
+from typing import Optional, Sequence, Literal, List, Dict, Any, Tuple, Union
 import numpy as np
 
 from .evaluators import (
@@ -56,7 +56,7 @@ def make_report(
     export_json: Optional[str] = None,
     sensitive_features: Optional[Sequence] = None,
     query_id: Optional[Sequence] = None,
-) -> str | Tuple[str, Dict[str, Any]]:
+) -> Union[str, Tuple[str, Dict[str, Any]]]:
     
     y_true = np.asarray(y_true)
     

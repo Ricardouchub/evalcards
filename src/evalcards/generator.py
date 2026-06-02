@@ -1,6 +1,6 @@
 import os
 import json
-from typing import Dict, Any, Tuple
+from typing import Dict, Any, Tuple, Union
 from jinja2 import Environment, FileSystemLoader
 import base64
 
@@ -37,7 +37,7 @@ def generate_report(
     lang: str = "es",
     fmt: str = "md",
     export_json: str = None,
-) -> str | Tuple[str, Dict[str, Any]]:
+) -> Union[str, Tuple[str, Dict[str, Any]]]:
     
     if title is None:
         title = "Reporte de Evaluación"
