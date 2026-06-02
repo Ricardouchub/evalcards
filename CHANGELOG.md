@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.0.0] - 2026-06-02
+## [1.0.1] - 2026-06-02
 - **Refactorización Mayor:**
   - Migración a arquitectura modular (`evaluators.py`, `plotting.py`, `generator.py`, `config.py`, `cli.py`).
   - Uso de plantillas **Jinja2** puras para la generación de reportes.
