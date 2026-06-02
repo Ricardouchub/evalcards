@@ -1,56 +1,37 @@
-# evalcards — Guía completa
+<p align="right">
+  <a href="https://github.com/Ricardouchub/evalcards/blob/master/README-english.md">
+    README English
+  </a>
+</p>
 
-`evalcards` genera **reportes de evaluación** en **Markdown** con **métricas** y **gráficos** para:
-- **Clasificación**: binaria y **multiclase (One-vs-Rest)** con métricas `accuracy`, `balanced_accuracy`, `mcc`, `log_loss` (si hay probabilidades), `roc_auc`/`pr_auc` y curvas **ROC/PR** por clase.
+# evalcards
+
+[![PyPI version](https://badge.fury.io/py/evalcards.svg)](https://badge.fury.io/py/evalcards)
+[![Python versions](https://img.shields.io/pypi/pyversions/evalcards.svg)](https://pypi.org/project/evalcards/)
+[![CI](https://github.com/Ricardouchub/evalcards/actions/workflows/ci.yml/badge.svg)](https://github.com/Ricardouchub/evalcards/actions/workflows/ci.yml)
+[![Publish](https://github.com/Ricardouchub/evalcards/actions/workflows/release.yml/badge.svg)](https://github.com/Ricardouchub/evalcards/actions/workflows/release.yml)
+
+<p align="center">
+  <img src="docs/assets/sample_confusion.png" width="30%" />
+  <img src="docs/assets/sample_roc.png" width="30%" />
+  <img src="docs/assets/sample_fit.png" width="30%" />
+</p>
+
+**[evalcards](https://pypi.org/project/evalcards/)** es una librería para Python que genera reportes de evaluación para **modelos supervisados** en **Markdown**, con **métricas** y **gráficos** listos para usar en informes. Soporta:
+- **Clasificación**: binaria y **multiclase (OvR)** con métricas como `accuracy`, `balanced_accuracy`, `mcc`, `log_loss` (si hay probabilidades), `roc_auc`/`pr_auc`, además de curvas **ROC/PR** por clase.
 - **Regresión**: `MAE`, `MSE`, `RMSE`, `R²`, `MedAE`, `MAPE`, `RMSLE`.
 - **Forecasting** (series de tiempo): `MAE`, `MSE`, `RMSE`, `MedAE`, `MAPE`, `RMSLE`, **sMAPE (%)** y **MASE**.
-- **Clasificación multi-label**: métricas, matriz de confusión por etiqueta y curvas **ROC/PR por etiqueta** si se pasan probabilidades.
-
-Los reportes incluyen tablas con métricas y PNGs listos para insertar en informes o PRs.
-
----
-
-## Índice
-- [Instalación](#instalación)
-- [Quickstart (Python)](#quickstart-python)
-- [Conceptos y salidas](#conceptos-y-salidas)
-- [Casos de uso](#casos-de-uso)
-  - [Clasificación binaria](#clasificación-binaria)
-  - [Clasificación multiclase (OvR)](#clasificación-multiclase-ovr)
-  - [Clasificación multi-label](#clasificación-multi-label)
-  - [Regresión](#regresión)
-  - [Forecasting](#forecasting)
-- [Export JSON (integración)](#export-json-integración)
-- [Soporte de idioma](#soporte-de-idioma)
-- [Buenas prácticas y troubleshooting](#buenas-prácticas-y-troubleshooting)
-- [Limitaciones actuales](#limitaciones-actuales)
-- [Versionado y compatibilidad](#versionado-y-compatibilidad)
-- [Licencia](#licencia)
-- [Referencia de API](#referencia-de-api)
-
----
+- **Clasificación multi-label**: matriz de confusión y curvas **ROC/PR por etiqueta** si se pasan probabilidades.
+- **Export JSON** métricas y rutas de imágenes para integración en pipelines (nuevo en v0.2.11).
 
 ## Instalación
-
+-----------
 ```bash
 pip install evalcards
 ```
 
-Requisitos:
-- **Python ≥ 3.9**
-- Dependencias principales (instaladas automáticamente): `numpy`, `pandas`, `scikit-learn`, `matplotlib`, `jinja2`.
-
-Verifica versión instalada:
-```bash
-python -c "from importlib.metadata import version; print(version('evalcards'))"
-# o
-python -c "import evalcards; print(getattr(evalcards, '__version__', 'unknown'))"
-```
-
----
-
-## Quickstart (Python)
-
+## Uso rápido (Python)
+-------------------
 ```python
 from evalcards import make_report
 
@@ -59,50 +40,36 @@ from evalcards import make_report
 # y_proba (opcional):
 #   - binaria: vector 1D con prob. de la clase positiva
 #   - multiclase: matriz (n_samples, n_classes) con prob. por clase
+#   - multi-label: matriz (n_samples, n_labels) con prob. por etiqueta
 
 path = make_report(
     y_true, y_pred,
-    y_proba=proba,     # opcional
-    path="reporte.md",
-    export_json="info.json"  # << opcional: genera también info.json y devuelve (path, info)
+    y_proba=proba,                 # opcional
+    path="reporte.md",             # nombre del archivo Markdown
+    title="Mi modelo"              # título del reporte
 )
-print(path)  # -> ruta del Markdown generado
+print(path)  # ruta del reporte generado
 ```
 
----
+## Qué evalúa
+------------------
+- **Clasificación (binaria/multiclase/multi-label)**
+  Métricas: `accuracy`, `precision/recall/F1` (macro/weighted), `balanced_accuracy`, `mcc`, `log_loss` (si hay probabilidades).
+  AUC / AUPRC: `roc_auc` y `pr_auc` (binaria), `roc_auc_ovr_macro` y `pr_auc_macro` (multiclase), `roc_auc_macro` (multi-label).
+  Gráficos: **matriz de confusión**, **ROC** y **PR** (por clase en multiclase, por etiqueta en multi-label).
 
-## Conceptos y salidas
+- **Regresión**
+  Métricas: `MAE`, `MSE`, `RMSE`, `R²`, `MedAE`, `MAPE`, `RMSLE`.
+  Gráficos: **Ajuste (y vs ŷ)** y **Residuales**.
 
-- **Entrada mínima**: arrays `y_true` y `y_pred` (mismo largo).  
-- **Probabilidades** (`y_proba`) opcionales:
-  - **Binaria**: vector 1D con prob. de la clase positiva.
-  - **Multiclase**: matriz `(n_samples, n_classes)` con una columna por clase (mismo orden que tu modelo).
-  - **Multi-label**: matriz `(n_samples, n_labels)` con probabilidad de cada etiqueta.
-- **Salida**:
-  - Un archivo **Markdown** (por defecto `report.md`) con la tabla de métricas y referencias a imágenes.
-  - **PNGs**:
-    - Clasificación: `confusion.png` y (si hay probabilidades) `roc*.png`, `pr*.png`.  
-      Multiclase: `roc_class_<clase>.png`, `pr_class_<clase>.png` **por clase**.
-      Multi-label: `confusion_<etiqueta>.png`, `roc_label_<etiqueta>.png`, `pr_label_<etiqueta>.png` **por etiqueta**.
-    - Regresión/Forecasting: `fit.png` (y vs ŷ) y `resid.png` (residuales).
-- **Ubicación**:
-  - Si `path` **no** incluye carpeta, todo se guarda en `./evalcards_reports/`.  
-  - Puedes fijar carpeta con `out_dir` o pasando una **ruta completa** en `path`.
-- **JSON** (opcional): 
-Estructura típica del JSON:
-```json
-{
-  "metrics": { ... },
-  "charts": { "confusion": "confusion.png", "roc": [...], "pr": [...] },
-  "markdown": "report.md"
-}
-```
----
+- **Forecasting**
+  Métricas: `MAE`, `MSE`, `RMSE`, `MedAE`, `MAPE`, `RMSLE`, **sMAPE (%)**, **MASE**.
+  Parámetros extra: `season` (p.ej. 12) e `insample` (serie de entrenamiento para MASE).
+  Gráficos: **Ajuste** y **Residuales**.
 
-## Casos de uso
-
-### Clasificación binaria
-
+## Ejemplos 
+---------------
+**1) Clasificación binaria (scikit-learn)**
 ```python
 from sklearn.datasets import make_classification
 from sklearn.linear_model import LogisticRegression
@@ -110,53 +77,20 @@ from sklearn.model_selection import train_test_split
 from evalcards import make_report
 
 X, y = make_classification(n_samples=600, n_features=10, random_state=0)
-Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=0.3, random_state=0)
+X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.3, random_state=0)
 
-clf = LogisticRegression(max_iter=1000).fit(Xtr, ytr)
-y_pred = clf.predict(Xte)
-proba = clf.predict_proba(Xte)[:, 1]  # prob. de la clase positiva
+clf = LogisticRegression(max_iter=1000).fit(X_tr, y_tr)
+y_pred = clf.predict(X_te)
+proba = clf.predict_proba(X_te)[:, 1]
 
-make_report(yte, y_pred, y_proba=proba, path="rep_bin.md", title="Clasificación binaria")
+make_report(y_te, y_pred, y_proba=proba, path="rep_bin.md", title="Clasificación binaria")
 ```
 
-Incluye: `accuracy`, `precision/recall/F1` (macro/weighted), `balanced_accuracy`, `mcc`, `log_loss` (si hay probabilidades), **AUC ROC** (`roc_auc`) y **AUPRC** (`pr_auc`), además de curvas **ROC/PR**.
-
----
-
-### Clasificación multiclase (OvR)
-
+**2) Multiclase (OvR)**
 ```python
 from sklearn.datasets import load_iris
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-from evalcards import make_report
-
-X, y = load_iris(return_X_y=True)
-Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=0.3, random_state=0)
-
-clf = RandomForestClassifier(random_state=0).fit(Xtr, ytr)
-y_pred = clf.predict(Xte)
-proba = clf.predict_proba(Xte)  # (n_samples, n_classes)
-
-make_report(
-    yte, y_pred, y_proba=proba,
-    labels=[f"Clase_{c}" for c in clf.classes_],  # opcional
-    path="rep_multi.md", title="Multiclase OvR"
-)
-```
-
-Incluye: métricas macro/weighted, `balanced_accuracy`, `mcc`, `log_loss` (si hay probabilidades), **AUC macro OvR** (`roc_auc_ovr_macro`), **AUPRC macro** (`pr_auc_macro`) y **curvas ROC/PR por clase**.
-
----
-
-### Clasificación multi-label
-```python
-from sklearn.datasets import make_multilabel_classification
-from sklearn.linear_model import LogisticRegression
-from sklearn.multioutput import MultiOutputClassifier
-from evalcards import make_report
-
-X, y = make_multilabel_classification(n_samples=300, n_features=12, n_classes=4, n_labels=2, random_state=42)
+@@ -107,51 +107,51 @@ X, y = make_multilabel_classification(n_samples=300, n_features=12, n_classes=4,
 clf = MultiOutputClassifier(LogisticRegression(max_iter=1000)).fit(X, y)
 y_pred = clf.predict(X)
 # Probabilidad por etiqueta (matriz n_samples x n_labels)
@@ -165,12 +99,8 @@ y_proba = np.stack([m.predict_proba(X)[:,1] for m in clf.estimators_], axis=1)
 make_report(y, y_pred, y_proba=y_proba, path="rep_multilabel.md", title="Multi-label Example", lang="en",
             labels=[f"Tag_{i}" for i in range(y.shape[1])])
 ```
-Genera una tabla de métricas multi-label (subset accuracy, hamming loss, F1/precision/recall macro y micro), una matriz de confusión por etiqueta y, si se pasan probabilidades (`y_proba` 2D), curvas ROC y PR por etiqueta (`roc_label_<etiqueta>.png`, `pr_label_<etiqueta>.png`).
 
----
-
-### Regresión
-
+**4) Regresión**
 ```python
 from sklearn.datasets import make_regression
 from sklearn.ensemble import RandomForestRegressor
@@ -178,20 +108,15 @@ from sklearn.model_selection import train_test_split
 from evalcards import make_report
 
 X, y = make_regression(n_samples=600, n_features=8, noise=10, random_state=0)
-Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=0.3, random_state=0)
+X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.3, random_state=0)
 
-reg = RandomForestRegressor(random_state=0).fit(Xtr, ytr)
-y_pred = reg.predict(Xte)
+reg = RandomForestRegressor(random_state=0).fit(X_tr, y_tr)
+y_pred = reg.predict(X_te)
 
-make_report(yte, y_pred, path="rep_reg.md", title="Regresión")
+make_report(y_te, y_pred, path="rep_reg.md", title="Regresión")
 ```
 
-Incluye: `MAE`, `MSE`, `RMSE`, `R²`, `MedAE`, `MAPE`, `RMSLE` + gráficos de **ajuste** y **residuales**.
-
----
-
-### Forecasting
-
+**5) Forecasting (sMAPE/MASE + métricas extra)**
 ```python
 import numpy as np
 from evalcards import make_report
@@ -201,7 +126,7 @@ t = np.arange(360)
 y = 10 + 0.05*t + 5*np.sin(2*np.pi*t/12) + rng.normal(0,1,360)
 
 y_train, y_test = y[:300], y[300:]
-y_hat = y_test + rng.normal(0, 1.2, y_test.size)  # ejemplo de predicción
+y_hat = y_test + rng.normal(0, 1.2, y_test.size)  # predicción de ejemplo
 
 make_report(
     y_test, y_hat,
@@ -210,89 +135,145 @@ make_report(
 )
 ```
 
-Incluye: `MAE`, `MSE`, `RMSE`, `MedAE`, `MAPE`, `RMSLE`, **sMAPE (%)**, **MASE** + gráficos.
-
----
-
-## Export JSON (integración)
-
-- Para pipelines y CI, puedes solicitar un JSON con las métricas y las rutas de los PNGs generados.
-- Ejemplo en Python:
-```python
-md_path, info = make_report(y_true, y_pred, path="rep.md", export_json="rep.json")
-# info["metrics"], info["charts"], info["markdown"]
-```
-- Ejemplo CLI:
-```bash
-evalcards --y_true y_true.csv --y_pred y_pred.csv --out report.md --export-json report.json
-```
-- Nota: si pasas `export_json` como un path absoluto, el JSON se escribirá allí; si pasas solo un nombre, se colocará en la carpeta de salida resuelta.
-
----
-
-
-## Soporte de idioma
-
-Puedes generar reportes en español o inglés con el parámetro `lang`:
-
+**6) Comparación Multi-Modelo (Nuevo en v0.3.0)**
 ```python
 from evalcards import make_report
+# Puedes pasar un diccionario con los nombres de tus modelos y sus predicciones
+y_preds = {"Random Forest": y_pred_rf, "XGBoost": y_pred_xgb}
+y_probas = {"Random Forest": proba_rf, "XGBoost": proba_xgb}
 
-make_report(y_true, y_pred, path="reporte.md", title="Mi modelo", lang="es")
-make_report(y_true, y_pred, path="report_en.md", title="My Model", lang="en")
+# Generará curvas conjuntas y tablas comparativas en el mismo reporte HTML/Markdown
+make_report(y_te, y_preds, y_proba=y_probas, path="rep_multi.html", fmt="html", title="Comparativa")
 ```
 
-También en CLI:
-
-```bash
-evalcards --y_true y_true.csv --y_pred y_pred.csv --lang en --out report_en.md
+**7) Análisis de Equidad (Fairness & Bias)**
+```python
+# Mide el rendimiento por subgrupo demográfico, de cliente, etc.
+grupos = ["Joven", "Adulto", "Adulto", "Joven", ...] 
+make_report(y_te, y_pred, sensitive_features=grupos, title="Reporte de Equidad")
 ```
----
 
-## Buenas prácticas y troubleshooting
+**8) Tareas de Ranking (NDCG)**
+```python
+# Para sistemas de búsqueda o recomendación
+make_report(y_te, y_pred, task="ranking", query_id=user_ids, title="Resultados de Búsqueda")
+```
 
-- **Probabilidades**:
-  - Binaria: `y_proba` como vector 1D (prob. de la clase positiva).
-  - Multiclase: matriz `(n_samples, n_classes)`; cuida el **orden de columnas** (usa `clf.classes_` en scikit-learn).
-  - Multi-label: matriz `(n_samples, n_labels)`; cada columna corresponde a la probabilidad de cada etiqueta.
-- **Gráficos sin GUI**:
-  - Guardado a PNG no requiere GUI. Si tu entorno no tiene backend gráfico, puedes forzar:
-    - Variable: `MPLBACKEND=Agg`
-    - O antes de importar `pyplot`:
-      ```python
-      import matplotlib
-      matplotlib.use("Agg")
-      ```
-- **Rendimiento**:
-  - En datasets muy grandes, los *scatter* pueden ser pesados. Considera muestrear puntos.
-- **Errores típicos**:
-  - *Shape mismatch*: `y_true` y `y_pred` deben tener la misma longitud.
-  - Probabilidades inválidas: deben estar en `[0,1]`; en multiclase, las filas deberían sumar ~1.
-  - Clases/nombres: si pasas `labels`, su longitud debe ser `n_classes`.
+## Configuración y Formatos
+-------------------
+- **.evalcards.toml**: Si creas un archivo `.evalcards.toml` en tu directorio, `evalcards` usará sus parámetros por defecto (útil para la CLI).
+  ```toml
+  [evalcards]
+  outdir = "reportes_diarios"
+  lang = "es"
+  format = "html"
+  ```
+- **Formatos Rápidos (CLI)**: Puedes usar archivos `.parquet` y `.feather` directamente en los argumentos `--y_true`, `--y_pred` y `--proba` para cargar millones de registros rápidamente.
 
----
+## Salidas y PATH
+-------------------
+- Un archivo **Markdown** con las métricas y referencias a imágenes generadas.
+- Imágenes **PNG** (según el tipo de tarea):
+  - **Clasificación binaria**:  
+    - `confusion.png` (matriz de confusión global)  
+    - `roc.png` (curva ROC)  
+    - `pr.png` (curva Precision-Recall)
+  - **Clasificación multiclase (OvR)**:  
+    - `confusion.png` (matriz de confusión global)  
+    - `roc_class_<clase>.png` (curva ROC para cada clase, One-vs-Rest)  
+    - `pr_class_<clase>.png` (curva PR para cada clase)
+  - **Clasificación multi-label**:  
+    - `confusion_<etiqueta>.png` (matriz de confusión para cada etiqueta)  
+    - `roc_label_<etiqueta>.png` (curva ROC para cada etiqueta, si se pasan probabilidades)  
+    - `pr_label_<etiqueta>.png` (curva PR para cada etiqueta, si se pasan probabilidades)
+  - **Regresión / Forecasting**:  
+    - `fit.png` (dispersión y vs ŷ, ajuste del modelo)  
+    - `resid.png` (gráfico de residuales)
 
-## Limitaciones actuales
+- **Ubicación de archivos**:
+  - Por defecto, los archivos se guardan en la carpeta `./evalcards_reports/` si `path` no incluye ruta.
+  - Puedes cambiar la carpeta con el argumento `out_dir` o usando una ruta en `path`.
 
-- En multiclase: AUC macro OvR y curvas por clase (no micro/macro PR/ROC agregadas por ahora).
-- Sin métricas de ranking (MAP/NDCG) ni calibración (Brier/curva de calibración) por ahora.
+- **Export JSON (opcional)**:  
+  Si usas el parámetro `export_json`, también se genera un archivo `.json` con las métricas y los nombres/rutas de los PNG generados.
 
----
+- **Ejemplo de nombres multi-label**:  
+  Si usas `labels=["A","B","C"]`, los archivos serán:  
+  - `confusion_A.png`, `roc_label_A.png`, `pr_label_A.png`  
+  - `confusion_B.png`, `roc_label_B.png`, `pr_label_B.png`  
+  - etc.
 
-## Versionado y compatibilidad
+- **JSON (opcional)**: contiene `metrics`, `charts` y `markdown`.
 
-- Soporta **Python 3.9 – 3.13**.
-- Sigue SemVer de forma aproximada (patch = fixes, minor = features, major = *breaking changes*).
-- Consulta `CHANGELOG.md` para detalles por versión.
+## Entradas esperadas (formas comunes)
+-----------------------------------
+- **Clasificación**
+  - `y_true`: enteros 0..K-1 (o etiquetas string).
+  - `y_pred`: del mismo tipo/espacio de clases que `y_true`.
+  - `y_proba` (opcional):
+    - **Binaria**: vector 1D con prob. de la clase positiva.
+    - **Multiclase**: matriz `(n_samples, n_classes)` con una columna por clase (mismo orden que tu modelo).
+    - **Multi-label**: matriz `(n_samples, n_labels)` con una columna por etiqueta (proba de pertenecer).
+- **Regresión / Forecast**
+  - `y_true`, `y_pred`: arrays 1D de floats.
+  - `insample` (forecast): serie de entrenamiento para MASE; `season` según la estacionalidad (ej. 12 mensual/anual).
 
----
+## Compatibilidad de modelos
+------------------------
+Funciona con **cualquier modelo** que produzca `predict` (y opcionalmente `predict_proba`):
+- scikit-learn, XGBoost/LightGBM/CatBoost, statsmodels, Prophet/NeuralProphet, Keras/PyTorch.
+- Multiclase: `y_proba` como matriz (una columna por clase) y  `labels` para nombres.
+
+
+## Roadmap
+------------------------
+### v0.3 — Salida y métricas clave
+- [x] Reporte HTML autocontenido (`format="md|html|both"`)
+- [x] Export JSON** de métricas/paths (`--export-json`)
+- [x] Métricas nuevas (clasificación): AUPRC, Balanced Accuracy, MCC, Log Loss, Brier Score
+- [x] Métricas nuevas (regresión): MAPE, MedAE, RMSLE
+
+### v0.4 — Multiclase y umbrales
+- [x] Análisis de umbral (curvas precisión–recobrado–F1 vs umbral)
+- [ ] ROC/PR micro & macro (multiclase) + `roc_auc_macro`, `average_precision_macro`
+- [ ] Matriz de confusión normalizada (global y por clase)
+
+### v0.5 — Probabilidades y comparación
+- [x] Calibración: Brier score + curva de confiabilidad (Reliability Curve)
+- [x] Comparación multi-modelo en un único reporte (pasa dict a y_pred/y_proba)
+- [x] Gráficos interactivos HTML con Plotly
+- [x] Análisis de Sesgo (Fairness & Bias) con `sensitive_features`
+- [x] Insights automáticos para destacar hallazgos clave
+- [x] Tareas de Ranking (NDCG) con `query_id`
+
+### v0.6 — DX, formatos y docs
+- [x] Nuevos formatos de entrada: Parquet/Feather desde CLI
+- [x] Config de proyecto (`.evalcards.toml`) para defaults (outdir, format, lang)
+- [x] Plantillas/temas Jinja2 (branding base ya integrado en Markdown y HTML)
+- [x] Docs con MkDocs + GitHub Pages (guía, API, ejemplos ejecutables)
+
+
+### Ideas
+------------------------
+- [x] Soporte **multi-label** (*completado*)
+- [ ] Métricas de ranking (MAP/NDCG)
+- [ ] Curvas de calibración por bins configurables
+- [ ] QQ-plot e histograma de residuales (regresión)
+- [x] i18n ES/EN (*completado*)
+
+
+## Documentación
+------------------------
+**[Guía](docs/index.md)** | **[Referencia de API](docs/api.md)** | **[Changelog](CHANGELOG.md)** 
+
 
 ## Licencia
+------------------------
+MIT
 
-**MIT** — © Ricardo Urdaneta.
 
----
+## Autor
+------------------------
+**Ricardo Urdaneta**
 
-## Referencia de API
-
-Consulta la [Referencia de API](api.md) para firmas, tipos y parámetros detallados.
+**[Linkedin](https://www.linkedin.com/in/ricardourdanetacastro)**

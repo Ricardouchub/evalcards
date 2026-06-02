@@ -232,12 +232,18 @@ def evaluate_regression(y_true, y_preds, out_dir, metrics_filter=None, sensitive
         mse = mean_squared_error(y_true, y_pred)
         rmse = float(np.sqrt(mse))
         r2 = r2_score(y_true, y_pred)
-        mape = np.mean(np.abs((y_true - y_pred) / (y_true + 1e-8))) * 100
+        mape = np.mean(np.abs((y_true - y_pred) / (np.abs(y_true) + 1e-8))) * 100
+        
+        try:
+            rmsle = np.sqrt(np.mean((np.log1p(np.maximum(0, y_true)) - np.log1p(np.maximum(0, y_pred))) ** 2))
+        except Exception:
+            rmsle = float('nan')
 
         metrics_dict = {
             "MAE": mae,
             "MSE": mse,
             "RMSE": rmse,
+            "RMSLE": rmsle,
             "R2": r2,
             "MAPE": mape
         }
@@ -260,8 +266,19 @@ def evaluate_regression(y_true, y_preds, out_dir, metrics_filter=None, sensitive
 def evaluate_forecast(y_true, y_preds, season, insample, out_dir, metrics_filter=None, sensitive_features=None, fmt="md") -> EvaluationResult:
     res = evaluate_regression(y_true, y_preds, out_dir, metrics_filter, sensitive_features, fmt)
     res.task = "forecast"
-    # sMAPE and MASE could be added here iterating the models...
-    # Keeping it simple for brevity
+    
+    y_preds_dict = _ensure_dict(y_preds)
+    for model_name, y_pred in y_preds_dict.items():
+        sm = smape(y_true, y_pred)
+        ms = mase(y_true, y_pred, season=season, insample=insample)
+        
+        if res.is_multimodel:
+            res.metrics[model_name]["sMAPE"] = sm
+            res.metrics[model_name]["MASE"] = ms
+        else:
+            res.metrics["sMAPE"] = sm
+            res.metrics["MASE"] = ms
+            
     return res
 
 def evaluate_ranking(y_true, y_preds, query_id, out_dir, metrics_filter=None, fmt="md") -> EvaluationResult:
