@@ -12,6 +12,11 @@
 [![Publish](https://github.com/Ricardouchub/evalcards/actions/workflows/release.yml/badge.svg)](https://github.com/Ricardouchub/evalcards/actions/workflows/release.yml)
 
 <p align="center">
+  <img src="docs/assets/sample_insights.png" width="80%" />
+  <br/>
+  <img src="docs/assets/sample_metrics.png" width="45%" />
+  <img src="docs/assets/sample_fairness.png" width="45%" />
+  <br/><br/>
   <img src="docs/assets/sample_confusion.png" width="30%" />
   <img src="docs/assets/sample_roc.png" width="30%" />
   <img src="docs/assets/sample_fit.png" width="30%" />
