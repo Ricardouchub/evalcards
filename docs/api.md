@@ -28,17 +28,20 @@ make_report(
     insample: Optional[Sequence[float]] = None,
     lang: str = "es",
     metrics: Optional[List[str]] = None,
-    export_json: Optional[str] = None,  # << nuevo parámetro
+    fmt: str = "md",
+    export_json: Optional[str] = None,
+    sensitive_features: Optional[Sequence] = None, # Para medir Fairness
+    query_id: Optional[Sequence] = None, # Requerido para task="ranking"
 ) -> Union[str, Tuple[str, Dict[str, Any]]]
 ```
 
 ### Parámetros
 - **`y_true`** (`array-like 1D` o `2D` en multi-label): valores/etiquetas reales. Soporta `list`, `np.ndarray`, `pd.Series`.
-- **`y_pred`** (`array-like 1D` o `2D` en multi-label): valores/etiquetas predichas. Misma longitud/forma que `y_true`.
+- **`y_pred`** (`array-like 1D` o `2D` en multi-label, o `dict`): valores/etiquetas predichas. Misma longitud/forma que `y_true`. Si es `dict`, las llaves son nombres de modelos y los valores son predicciones.
 - **`y_proba`** (opcional):  
-  - **Binaria**: `array-like 1D` con prob. de la clase positiva.  
-  - **Multiclase**: `array-like 2D` `(n_samples, n_classes)` con prob. por clase.  
-  - **Multi-label**: `array-like 2D` `(n_samples, n_labels)` con prob. por etiqueta.
+  - **Binaria**: `array-like 1D` con prob. de la clase positiva, o `dict` para multi-modelo.  
+  - **Multiclase**: `array-like 2D` `(n_samples, n_classes)` con prob. por clase, o `dict`.  
+  - **Multi-label**: `array-like 2D` `(n_samples, n_labels)` con prob. por etiqueta, o `dict`.
 - **`path`** (`str`, por defecto `"report.md"`): nombre del archivo Markdown a generar.  
   - Si no incluye carpeta, se guardará en `./evalcards_reports/` por defecto.
 - **`title`** (`str`): título mostrado en el reporte.
@@ -47,6 +50,8 @@ make_report(
   - `"auto"` intenta detectar multi-label (si `y_true` y `y_pred` son 2D binarias) o clasificación/regresión por heurística.
 - **`out_dir`** (`str | None`): carpeta de salida. Si se indica, tiene prioridad sobre la carpeta por defecto.
 - **`season`**, **`insample`**, **`lang`**, **`metrics`**: ver sección Forecast / i18n / selección de métricas.
+- **`sensitive_features`** (`Sequence`, opcional): Array con los grupos demográficos o segmentos para calcular el Análisis de Equidad (Fairness & Bias).
+- **`query_id`** (`Sequence`, opcional): Identificadores de sesión/grupo, obligatorio si `task="ranking"`.
 - **`export_json`** (`str` | `None`) — NUEVO:  
   - Si se pasa una ruta (absoluta o relativa), además del Markdown se generará un archivo JSON con las métricas calculadas y las rutas de las imágenes generadas.
   - Si `export_json` se pasa como nombre (sin carpeta), el JSON se colocará en la misma carpeta de salida resuelta (`out_dir` / carpeta por defecto).

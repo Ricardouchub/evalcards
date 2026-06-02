@@ -1,0 +1,102 @@
+# {{ title }}
+
+**{{ T.task }}:** {{ T.get(task, task) }}
+
+{% if insights %}
+## 💡 Insights
+{% for insight in insights %}
+- {{ insight }}
+{% endfor %}
+{% endif %}
+
+## {{ T.metrics }}
+{% if is_multimodel %}
+| {{ T.metric }} | {% for model_name in metrics.keys() %}{{ model_name }} | {% endfor %}
+|---|{% for _ in metrics.keys() %}---:|{% endfor %}
+{% set first_model = metrics[metrics.keys()|first] %}
+{% for k in first_model.keys() %}
+| {{ k }} | {% for m in metrics.values() %}{% if k in m %}{{ "%.4f"|format(m[k]) }}{% else %}-{% endif %} | {% endfor %}
+{% endfor %}
+
+{% else %}
+| {{ T.metric }} | {{ T.value }} |
+|---|---:|
+{% for k, v in metrics.items() %}
+| {{ k }} | {{ "%.4f"|format(v) }} |
+{% endfor %}
+{% endif %}
+
+{% if fairness %}
+## 🔍 Análisis de Equidad (Fairness)
+{% if is_multimodel %}
+| Grupo / Métrica | {% for model_name in metrics.keys() %}{{ model_name }} | {% endfor %}
+|---|{% for _ in metrics.keys() %}---:|{% endfor %}
+{% for group, group_metrics in fairness.items() %}
+| **{{ group }}** | {% for _ in metrics.keys() %} | {% endfor %}
+{% set first_m = group_metrics[group_metrics.keys()|first] %}
+{% for m_name in first_m.keys() %}
+| &nbsp;&nbsp;&nbsp;&nbsp;{{ m_name }} | {% for m in group_metrics.values() %}{{ "%.4f"|format(m[m_name]) }} | {% endfor %}
+{% endfor %}
+{% endfor %}
+{% else %}
+| Grupo / Métrica | {{ T.value }} |
+|---|---:|
+{% for group, group_metrics in fairness.items() %}
+| **{{ group }}** | |
+{% for m_name, v in group_metrics.items() %}
+| &nbsp;&nbsp;&nbsp;&nbsp;{{ m_name }} | {{ "%.4f"|format(v) }} |
+{% endfor %}
+{% endfor %}
+{% endif %}
+{% endif %}
+
+{% if charts %}
+## {{ T.charts }}
+{% if task == "multi-label" %}
+{% if is_multimodel %}
+{% for model_name, confs in charts.confusion.items() %}
+### {{ model_name }}
+{% for label, fname in confs.items() %}
+![Confusion {{ label }}]({{ fname }})
+{% endfor %}
+{% endfor %}
+{% else %}
+{% for label, fname in charts.confusion.items() %}
+![Confusion {{ label }}]({{ fname }})
+{% endfor %}
+{% endif %}
+
+{% for label, fname in charts.roc.items() %}
+![ROC {{ label }}]({{ fname }})
+{% endfor %}
+{% for label, fname in charts.pr.items() %}
+![PR {{ label }}]({{ fname }})
+{% endfor %}
+
+{% elif task == "classification" %}
+{% if is_multimodel %}
+{% for model_name, fname in charts.confusion.items() %}
+![{{ T.confusion }} ({{ model_name }})]({{ fname }})
+{% endfor %}
+{% else %}
+![{{ T.confusion }}]({{ charts.confusion }})
+{% endif %}
+
+{% for p in charts.roc %}
+![{{ T.roc }}]({{ p }})
+{% endfor %}
+{% for p in charts.pr %}
+![{{ T.pr }}]({{ p }})
+{% endfor %}
+{% if charts.calibration %}
+![Calibration]({{ charts.calibration }})
+{% endif %}
+{% if charts.thresholds %}
+![Thresholds]({{ charts.thresholds }})
+{% endif %}
+
+{% elif task != "ranking" %}
+![{{ T.fit }}]({{ charts.fit }})
+![{{ T.resid }}]({{ charts.resid }})
+{% endif %}
+{% endif %}

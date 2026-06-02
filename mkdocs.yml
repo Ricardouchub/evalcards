@@ -1,0 +1,39 @@
+site_name: evalcards
+site_description: Herramienta ultra-ligera para evaluación de modelos en Python.
+site_url: https://ricardouchub.github.io/evalcards/
+repo_url: https://github.com/Ricardouchub/evalcards
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - toc.integrate
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: deep purple
+      toggle:
+        icon: material/brightness-7
+        name: Cambiar a modo oscuro
+    - scheme: slate
+      primary: indigo
+      accent: deep purple
+      toggle:
+        icon: material/brightness-4
+        name: Cambiar a modo claro
+
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          paths: [src]
+          options:
+            show_source: false
+            show_root_heading: true
+
+nav:
+  - Inicio: index.md
+  - API Reference: api.md

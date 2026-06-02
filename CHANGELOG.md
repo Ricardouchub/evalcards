@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.0] - 2026-06-02
+- **Refactorización Mayor:**
+  - Migración a arquitectura modular (`evaluators.py`, `plotting.py`, `generator.py`, `config.py`, `cli.py`).
+  - Uso de plantillas **Jinja2** puras para la generación de reportes.
+  - Tipado estructurado mediante **Dataclasses** (`models.py`).
+- **Nuevas Funcionalidades:**
+  - **Reportes HTML Autocontenidos:** Se puede generar un reporte `.html` responsivo (usando Pico CSS) con imágenes PNG incrustadas en formato Base64 (`--format html`).
+  - **Comparación Multi-Modelo:** Se permite pasar diccionarios a `y_pred` y `y_proba` para evaluar y comparar varios modelos en el mismo reporte y en los mismos gráficos (ROC, PR, Ajuste).
+  - **Configuración Global:** Soporte para archivo `.evalcards.toml` para definir preferencias y defaults (idioma, formato, carpeta destino).
+  - **Archivos de Alta Eficiencia:** Soporte nativo para leer archivos `.parquet` y `.feather` desde la CLI.
+  - **Análisis de Calibración:** Gráficos de Curvas de Confiabilidad (Reliability Curve) y Umbrales (Precision-Recall-F1 vs Threshold), e inclusión de *Brier Score*.
+
 ## [0.2.11] - 2025-09-20
 - **Feature: Export JSON de métricas y rutas**  
   - Nuevo parámetro `export_json` en `make_report` y `--export-json` en la CLI para generar un JSON con las métricas calculadas y las rutas (basenames) de las imágenes generadas.
