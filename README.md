@@ -6,12 +6,16 @@
 
 # evalcards
 
-[![PyPI version](https://img.shields.io/pypi/v/evalcards?logo=pypi&label=PyPI)](https://pypi.org/project/evalcards/)
-[![Python versions](https://img.shields.io/pypi/pyversions/evalcards?logo=python&label=Python)](https://pypi.org/project/evalcards/)
-[![Wheel](https://img.shields.io/pypi/wheel/evalcards?label=wheel)](https://pypi.org/project/evalcards/#files)
-[![License](https://img.shields.io/pypi/l/evalcards?label=License)](https://pypi.org/project/evalcards/)
+[![PyPI version](https://badge.fury.io/py/evalcards.svg)](https://badge.fury.io/py/evalcards)
+[![Python versions](https://img.shields.io/pypi/pyversions/evalcards.svg)](https://pypi.org/project/evalcards/)
 [![CI](https://github.com/Ricardouchub/evalcards/actions/workflows/ci.yml/badge.svg)](https://github.com/Ricardouchub/evalcards/actions/workflows/ci.yml)
 [![Publish](https://github.com/Ricardouchub/evalcards/actions/workflows/release.yml/badge.svg)](https://github.com/Ricardouchub/evalcards/actions/workflows/release.yml)
+
+<p align="center">
+  <img src="docs/assets/sample_confusion.png" width="30%" />
+  <img src="docs/assets/sample_roc.png" width="30%" />
+  <img src="docs/assets/sample_fit.png" width="30%" />
+</p>
 
 **[evalcards](https://pypi.org/project/evalcards/)** es una librería para Python que genera reportes de evaluación para **modelos supervisados** en **Markdown**, con **métricas** y **gráficos** listos para usar en informes. Soporta:
 - **Clasificación**: binaria y **multiclase (OvR)** con métricas como `accuracy`, `balanced_accuracy`, `mcc`, `log_loss` (si hay probabilidades), `roc_auc`/`pr_auc`, además de curvas **ROC/PR** por clase.
