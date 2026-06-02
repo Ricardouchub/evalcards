@@ -12,14 +12,14 @@
 [![Publish](https://github.com/Ricardouchub/evalcards/actions/workflows/release.yml/badge.svg)](https://github.com/Ricardouchub/evalcards/actions/workflows/release.yml)
 
 <p align="center">
-  <img src="docs/assets/sample_insights.png" width="80%" />
+  <img src="assets/sample_insights.png" width="80%" />
   <br/>
-  <img src="docs/assets/sample_metrics.png" width="45%" />
-  <img src="docs/assets/sample_fairness.png" width="45%" />
+  <img src="assets/sample_metrics.png" width="45%" />
+  <img src="assets/sample_fairness.png" width="45%" />
   <br/><br/>
-  <img src="docs/assets/sample_confusion.png" width="30%" />
-  <img src="docs/assets/sample_roc.png" width="30%" />
-  <img src="docs/assets/sample_fit.png" width="30%" />
+  <img src="assets/sample_confusion.png" width="30%" />
+  <img src="assets/sample_roc.png" width="30%" />
+  <img src="assets/sample_fit.png" width="30%" />
 </p>
 
 **[evalcards](https://pypi.org/project/evalcards/)** es una librería para Python que genera reportes de evaluación para **modelos supervisados** en **Markdown**, con **métricas** y **gráficos** listos para usar en informes. Soporta:
