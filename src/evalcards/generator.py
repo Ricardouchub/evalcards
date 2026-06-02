@@ -58,7 +58,7 @@ def generate_report(
         "ranking": eval_result.ranking_metrics
     }
     
-    full_path = os.path.join(out_dir, path)
+    full_path = path if os.path.isabs(path) or path.replace("\\", "/").startswith(out_dir.replace("\\", "/")) else os.path.join(out_dir, path)
     
     if fmt in ("html", "both"):
         html_template = env.get_template("report.html.j2")

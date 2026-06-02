@@ -104,7 +104,8 @@
                         </tr>
                         {% endfor %}
                         {% else %}
-                        {% for m_name, v in group_metrics.items() %}
+                        {% set single_m = group_metrics[group_metrics.keys()|first] %}
+                        {% for m_name, v in single_m.items() %}
                         <tr>
                             <td style="padding-left: 2rem;">{{ m_name }}</td>
                             <td style="text-align: right;">{{ "%.4f"|format(v) }}</td>

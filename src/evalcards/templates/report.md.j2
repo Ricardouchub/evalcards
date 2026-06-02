@@ -43,7 +43,8 @@
 |---|---:|
 {% for group, group_metrics in fairness.items() %}
 | **{{ group }}** | |
-{% for m_name, v in group_metrics.items() %}
+{% set single_m = group_metrics[group_metrics.keys()|first] %}
+{% for m_name, v in single_m.items() %}
 | &nbsp;&nbsp;&nbsp;&nbsp;{{ m_name }} | {{ "%.4f"|format(v) }} |
 {% endfor %}
 {% endfor %}
