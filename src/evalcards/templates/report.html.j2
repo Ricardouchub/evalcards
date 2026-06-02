@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <style>
+        body { padding-top: 2rem; padding-bottom: 2rem; }
+        .chart-container { text-align: center; margin-bottom: 2rem; }
+        .chart-container img { max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .metrics-table { margin-bottom: 3rem; }
+    </style>
+</head>
+<body>
+    <main class="container">
+        <h1 id="title">{{ title }}</h1>
+        <p><strong>{{ T.task }}:</strong> {{ T.get(task, task) }}</p>
+
+        {% if insights %}
+        <section id="insights">
+            <h2>💡 Insights</h2>
+            <ul>
+                {% for insight in insights %}
+                <li>{{ insight }}</li>
+                {% endfor %}
+            </ul>
+        </section>
+        {% endif %}
+
+        <section id="metrics">
+            <h2>{{ T.metrics }}</h2>
+            <figure>
+                <table class="metrics-table striped">
+                    <thead>
+                        {% if is_multimodel %}
+                        <tr>
+                            <th scope="col">{{ T.metric }}</th>
+                            {% for model_name in metrics.keys() %}
+                            <th scope="col" style="text-align: right;">{{ model_name }}</th>
+                            {% endfor %}
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <th scope="col">{{ T.metric }}</th>
+                            <th scope="col" style="text-align: right;">{{ T.value }}</th>
+                        </tr>
+                        {% endif %}
+                    </thead>
+                    <tbody>
+                        {% if is_multimodel %}
+                        {% set first_model = metrics[metrics.keys()|first] %}
+                        {% for k in first_model.keys() %}
+                        <tr>
+                            <td>{{ k }}</td>
+                            {% for m in metrics.values() %}
+                            <td style="text-align: right;">{% if k in m %}{{ "%.4f"|format(m[k]) }}{% else %}-{% endif %}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                        {% else %}
+                        {% for k, v in metrics.items() %}
+                        <tr>
+                            <td>{{ k }}</td>
+                            <td style="text-align: right;">{{ "%.4f"|format(v) }}</td>
+                        </tr>
+                        {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+            </figure>
+        </section>
+
+        {% if fairness %}
+        <section id="fairness">
+            <h2>🔍 Análisis de Equidad (Fairness)</h2>
+            <figure>
+                <table class="metrics-table striped">
+                    <thead>
+                        <tr>
+                            <th scope="col">Grupo / Métrica</th>
+                            {% if is_multimodel %}
+                            {% for model_name in metrics.keys() %}
+                            <th scope="col" style="text-align: right;">{{ model_name }}</th>
+                            {% endfor %}
+                            {% else %}
+                            <th scope="col" style="text-align: right;">{{ T.value }}</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for group, group_metrics in fairness.items() %}
+                        <tr>
+                            <td colspan="100%" style="font-weight: bold; background-color: rgba(125, 125, 125, 0.1);">{{ group }}</td>
+                        </tr>
+                        {% if is_multimodel %}
+                        {% set first_m = group_metrics[group_metrics.keys()|first] %}
+                        {% for m_name in first_m.keys() %}
+                        <tr>
+                            <td style="padding-left: 2rem;">{{ m_name }}</td>
+                            {% for m in group_metrics.values() %}
+                            <td style="text-align: right;">{{ "%.4f"|format(m[m_name]) }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                        {% else %}
+                        {% for m_name, v in group_metrics.items() %}
+                        <tr>
+                            <td style="padding-left: 2rem;">{{ m_name }}</td>
+                            <td style="text-align: right;">{{ "%.4f"|format(v) }}</td>
+                        </tr>
+                        {% endfor %}
+                        {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </figure>
+        </section>
+        {% endif %}
+
+        {% if charts_b64 %}
+        <section id="charts">
+            <h2>{{ T.charts }}</h2>
+            <div class="grid">
+                {% macro render_chart(b64, label) %}
+                    {% if b64.strip().startswith("<div") %}
+                        <div class="chart-container">
+                            {{ b64 }}
+                        </div>
+                    {% else %}
+                        <div class="chart-container">
+                            <img src="data:image/png;base64,{{ b64 }}" alt="{{ label }}">
+                            <p>{{ label }}</p>
+                        </div>
+                    {% endif %}
+                {% endmacro %}
+
+                {% if task == "multi-label" %}
+                    {% if is_multimodel %}
+                        {% for model_name, confs in charts_b64.confusion.items() %}
+                        <div>
+                            <h3>{{ model_name }}</h3>
+                            {% for label, b64 in confs.items() %}
+                                {{ render_chart(b64, "Confusion " ~ label) }}
+                            {% endfor %}
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        {% for label, b64 in charts_b64.confusion.items() %}
+                            {{ render_chart(b64, "Confusion " ~ label) }}
+                        {% endfor %}
+                    {% endif %}
+                    
+                    {% for label, b64 in charts_b64.roc.items() %}
+                        {{ render_chart(b64, "ROC " ~ label) }}
+                    {% endfor %}
+                    {% for label, b64 in charts_b64.pr.items() %}
+                        {{ render_chart(b64, "PR " ~ label) }}
+                    {% endfor %}
+
+                {% elif task == "classification" %}
+                    {% if is_multimodel %}
+                        {% for model_name, b64 in charts_b64.confusion.items() %}
+                            {{ render_chart(b64, T.confusion ~ " (" ~ model_name ~ ")") }}
+                        {% endfor %}
+                    {% else %}
+                        {{ render_chart(charts_b64.confusion, T.confusion) }}
+                    {% endif %}
+                    
+                    {% for p in charts_b64.roc %}
+                        {{ render_chart(p, T.roc) }}
+                    {% endfor %}
+                    {% for p in charts_b64.pr %}
+                        {{ render_chart(p, T.pr) }}
+                    {% endfor %}
+                    {% if charts_b64.calibration %}
+                        {{ render_chart(charts_b64.calibration, "Calibration") }}
+                    {% endif %}
+                    {% if charts_b64.thresholds %}
+                        {{ render_chart(charts_b64.thresholds, "Thresholds") }}
+                    {% endif %}
+
+                {% elif task != "ranking" %}
+                    {{ render_chart(charts_b64.fit, T.fit) }}
+                    {{ render_chart(charts_b64.resid, T.resid) }}
+                {% endif %}
+            </div>
+        </section>
+        {% endif %}
+    </main>
+</body>
+</html>

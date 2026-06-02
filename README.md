@@ -131,6 +131,41 @@ make_report(
 )
 ```
 
+**6) Comparación Multi-Modelo (Nuevo en v0.3.0)**
+```python
+from evalcards import make_report
+# Puedes pasar un diccionario con los nombres de tus modelos y sus predicciones
+y_preds = {"Random Forest": y_pred_rf, "XGBoost": y_pred_xgb}
+y_probas = {"Random Forest": proba_rf, "XGBoost": proba_xgb}
+
+# Generará curvas conjuntas y tablas comparativas en el mismo reporte HTML/Markdown
+make_report(y_te, y_preds, y_proba=y_probas, path="rep_multi.html", fmt="html", title="Comparativa")
+```
+
+**7) Análisis de Equidad (Fairness & Bias)**
+```python
+# Mide el rendimiento por subgrupo demográfico, de cliente, etc.
+grupos = ["Joven", "Adulto", "Adulto", "Joven", ...] 
+make_report(y_te, y_pred, sensitive_features=grupos, title="Reporte de Equidad")
+```
+
+**8) Tareas de Ranking (NDCG)**
+```python
+# Para sistemas de búsqueda o recomendación
+make_report(y_te, y_pred, task="ranking", query_id=user_ids, title="Resultados de Búsqueda")
+```
+
+## Configuración y Formatos
+-------------------
+- **.evalcards.toml**: Si creas un archivo `.evalcards.toml` en tu directorio, `evalcards` usará sus parámetros por defecto (útil para la CLI).
+  ```toml
+  [evalcards]
+  outdir = "reportes_diarios"
+  lang = "es"
+  format = "html"
+  ```
+- **Formatos Rápidos (CLI)**: Puedes usar archivos `.parquet` y `.feather` directamente en los argumentos `--y_true`, `--y_pred` y `--proba` para cargar millones de registros rápidamente.
+
 ## Salidas y PATH
 -------------------
 - Un archivo **Markdown** con las métricas y referencias a imágenes generadas.
@@ -189,26 +224,29 @@ Funciona con **cualquier modelo** que produzca `predict` (y opcionalmente `predi
 ## Roadmap
 ------------------------
 ### v0.3 — Salida y métricas clave
-- [ ] Reporte HTML autocontenido (`format="md|html"`)
+- [x] Reporte HTML autocontenido (`format="md|html|both"`)
 - [x] Export JSON** de métricas/paths (`--export-json`)
-- [x] Métricas nuevas (clasificación): AUPRC, Balanced Accuracy, MCC, Log Loss
+- [x] Métricas nuevas (clasificación): AUPRC, Balanced Accuracy, MCC, Log Loss, Brier Score
 - [x] Métricas nuevas (regresión): MAPE, MedAE, RMSLE
 
 ### v0.4 — Multiclase y umbrales
+- [x] Análisis de umbral (curvas precisión–recobrado–F1 vs umbral)
 - [ ] ROC/PR micro & macro (multiclase) + `roc_auc_macro`, `average_precision_macro`
-- [ ] Análisis de umbral (curvas precisión–recobrado–F1 vs umbral + mejor umbral por métrica)
 - [ ] Matriz de confusión normalizada (global y por clase)
 
 ### v0.5 — Probabilidades y comparación
-- [ ] Calibración: Brier score + curva de confiabilidad
-- [ ] Comparación multi-modelo en un único reporte (tabla “mejor por métrica”)
-- [ ] Curvas gain/lift (opcional)
+- [x] Calibración: Brier score + curva de confiabilidad (Reliability Curve)
+- [x] Comparación multi-modelo en un único reporte (pasa dict a y_pred/y_proba)
+- [x] Gráficos interactivos HTML con Plotly
+- [x] Análisis de Sesgo (Fairness & Bias) con `sensitive_features`
+- [x] Insights automáticos para destacar hallazgos clave
+- [x] Tareas de Ranking (NDCG) con `query_id`
 
 ### v0.6 — DX, formatos y docs
-- [ ] Nuevos formatos de entrada: Parquet/Feather/NPZ
-- [ ] Config de proyecto (`.evalcards.toml`) para defaults (outdir, títulos, idioma)
-- [ ] Docs con MkDocs + GitHub Pages (guía, API, ejemplos ejecutables)
-- [ ] Plantillas/temas Jinja2 (branding)
+- [x] Nuevos formatos de entrada: Parquet/Feather desde CLI
+- [x] Config de proyecto (`.evalcards.toml`) para defaults (outdir, format, lang)
+- [x] Plantillas/temas Jinja2 (branding base ya integrado en Markdown y HTML)
+- [x] Docs con MkDocs + GitHub Pages (guía, API, ejemplos ejecutables)
 
 
 ### Ideas
